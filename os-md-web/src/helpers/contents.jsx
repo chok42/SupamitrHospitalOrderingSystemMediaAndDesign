@@ -5,7 +5,7 @@ export const employeeService = {
 };
 
 export const jobService = {
-  EMPLOYEE_URL: `https://script.google.com/macros/s/${import.meta.env.VITE_JOB_BEARERTOKEN}/exec`,
+  JOB_URL: `https://script.google.com/macros/s/${import.meta.env.VITE_JOB_BEARERTOKEN}/exec`,
 };
 
 export const roleService = {
