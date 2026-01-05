@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import * as Yup from "yup";
@@ -10,7 +10,7 @@ import MyContext from "@/context/MyContext";
 //import { GetListDepartmentService } from "@/services/department.service";
 //import { GetListPositionService } from "@/services/position.service";
 //import { GetListRoleService } from "@/services/role.service";
-import { InsertEmployeeService } from "@/services/employee.service";
+import { GetListEmployeeService, InsertEmployeeService } from "@/services/employee.service";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -34,7 +34,7 @@ import jobStatusData from "@/data/jobstatus-data";
 import { InsertJobService } from "@/services/job.service";
 
 const employeeSchema = Yup.object().shape({
-  code: Yup.string().required("กรุณาระบุข้อมูล"),
+  // code: Yup.string().required("กรุณาระบุข้อมูล"),
   // username: Yup.string().required("กรุณาระบุข้อมูล"),
   // password: Yup.string().required("กรุณาระบุข้อมูล"),
   // pst_id: Yup.string().required("กรุณาระบุข้อมูล"),
@@ -44,9 +44,14 @@ const employeeSchema = Yup.object().shape({
 
 export function JobInsert() {
   const navigate = useNavigate();
-  const {dataEmp, setLoader } = useContext(MyContext);
+  const fileInputRef = useRef(null);
+  const { dataEmp, setLoader } = useContext(MyContext);
   const [showPassword, setShowPassword] = useState(false);
   const [date, setDate] = useState();
+  const [fileUse, setFileUse] = useState();
+  const [fileBase64, setFileBase64] = useState();
+  const [fileShow, setFileShow] = useState();
+  const [employees, setEmployees] = useState([])
   // const [departments, setDepartments] = useState([]);
   // const [positions, setPositions] = useState([]);
   // const [roles, setRoles] = useState([]);
@@ -69,9 +74,22 @@ export function JobInsert() {
   //   }
   // }, []);
 
-  const onSubmitEmployee = async (value) => {
+  useMemo(async () => {
+  const resEmp =  await GetListEmployeeService()
+  setEmployees
+  }, [])
+
+  const onSubmitJob = async (value) => {
     setLoader(true);
-    const resp = await InsertJobService(value);
+    const newValue = {
+      ...value,
+      file: fileBase64 ? fileBase64 : "",
+      fileName: fileBase64 ? fileUse.name : "",
+      mimeType: fileBase64 ? fileUse.type : "",
+    };
+
+
+    const resp = await InsertJobService(newValue);
     setLoader(false);
 
     if (resp && resp.success) {
@@ -79,17 +97,25 @@ export function JobInsert() {
     }
   };
 
-  const handleUpload = async () => {
-    const reader = new FileReader();
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
 
+  const handleUpload = async (file) => {
+    const reader = new FileReader();
+    setFileUse(file);
+    setFileShow(null)
     reader.onloadend = async () => {
       const base64 = reader.result.split(",")[1];
-      return base64
+      setFileBase64(base64);
+      const url = URL.createObjectURL(file);
+      setFileShow(url);
     };
-
     reader.readAsDataURL(file);
   };
 
+  console.log("fileUse", fileUse);
+  console.log("fileBase64", fileBase64);
 
   return (
     <Card shadow={true} className="px-8 py-20 container mx-auto">
@@ -97,7 +123,7 @@ export function JobInsert() {
         แบบฟอร์มแจ้งงาน (Brief Form)
       </Typography>
       <Typography variant="small" className="text-gray-600 font-normal mt-1">
-        กรุณากรอกข้อมูลให้ครบถ้วนเพื่อความรวดเร็จ
+        กรุณากรอกข้อมูลให้ครบถ้วนเพื่อความรวดเร็ว
       </Typography>
       <Formik
         initialValues={{
@@ -113,12 +139,15 @@ export function JobInsert() {
           file: "",
           type_id: "",
           status_id: "",
+          rvw_id: "",
+          rvw_name: "",
+          emp_id: dataEmp ? dataEmp.empId : "",
+          emp_name: dataEmp ? dataEmp.firstname : "",
           dpm_id: "",
           pst_id: "",
-          emp_name:""
         }}
         validationSchema={employeeSchema}
-        onSubmit={(value) => onSubmitEmployee(value)}
+        onSubmit={(value) => onSubmitJob(value)}
       >
         {({
           values,
@@ -130,15 +159,16 @@ export function JobInsert() {
           handleSubmit,
         }) => (
           <Form onSubmit={handleSubmit} className="flex flex-col mt-8">
-            {dataEmp &&              <div className=" mb-6 w-full">
+            {dataEmp && (
+              <div className=" mb-6 w-full">
                 <Typography
                   variant="small"
                   color="blue-gray"
                   className="mb-2 font-medium"
                 >
-                  ชื่อผู้แจ้ง
+                  ผู้แจ้ง
                 </Typography>
-                <Input
+                {/* <Input
                   disabled
                   size="lg"
                   placeholder="Supamitr"
@@ -146,22 +176,24 @@ export function JobInsert() {
                     className: "hidden",
                   }}
                   className="w-full placeholder:opacity-100 focus:border-t-gray-700 border-t-blue-gray-200"
-                  value={dataEmp.firstname}
-                />
-              </div>}
+                  value={values.firstname}
+                /> */}
+
+                {dataEmp && (
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="w-full bg-blue-gray-50 rounded-md p-2 placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-300"
+                  >
+                    {`รหัส: ${dataEmp.code} ชื่อ: คุณ ${dataEmp.firstname}`}
+                  </Typography>
+                )}
+              </div>
+            )}
             <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-
               <div className="w-full">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="mb-2 font-medium"
-                >
-                  แผนก (Department)
-                </Typography>
-
                 <select
-                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                   value={values.dpm_id}
                   onChange={(e) => setFieldValue("dpm_id", e.target.value)}
                   error={Boolean(
@@ -169,8 +201,10 @@ export function JobInsert() {
                   )}
                 >
                   <option value="">เลือกแผนก</option>
-                  {departmentsData.map(({ id, name },index) => (
-                    <option key={index} value={id}>{name}</option>
+                  {departmentsData.map(({ id, name }, index) => (
+                    <option key={index} value={id}>
+                      {name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -184,11 +218,11 @@ export function JobInsert() {
                 </Typography>
 
                 <select
-                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                  value={values.dpm_id}
-                  onChange={(e) => setFieldValue("dpm_id", e.target.value)}
+                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+                  value={values.rvw_id}
+                  onChange={(e) => setFieldValue("rvw_id", e.target.value)}
                   error={Boolean(
-                    touched && touched.dpm_id && errors && errors.dpm_id
+                    touched && touched.rvw_id && errors && errors.rvw_id
                   )}
                 >
                   <option value="">เลือกชื่อผู้ตรวจสอบ...</option>
@@ -356,7 +390,7 @@ export function JobInsert() {
             </Select>
           </div>
             </div> */}
-            <div className="w-full bg-light-blue-50 rounded-md p-2">
+            <div className="w-full bg-blue-gray-50 rounded-md p-2">
               <Typography
                 variant="small"
                 color="blue-gray"
@@ -380,7 +414,11 @@ export function JobInsert() {
                     labelProps={{
                       className: "hidden",
                     }}
-                    className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="name"
+                    value={values.name || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                   />
                 </div>
                 <div className="w-full">
@@ -391,25 +429,48 @@ export function JobInsert() {
                   >
                     กำหนดส่ง
                   </Typography>
-                  <Popover placement="bottom">
+                  <Input
+                    type="datetime-local"
+                    size="lg"
+                    // onChange={() => null}
+                    placeholder="เลือกวันที่"
+                    //value={date ? format(date, "PPP") : ""}
+                    labelProps={{
+                      className: "hidden",
+                    }}
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="dateTime"
+                    value={values.dateTime}
+                    onChange={(e) => setFieldValue("dateTime", e.target.value)}
+                    onBlur={handleBlur}
+                  />
+                  {/* <Popover placement="bottom">
                     <PopoverHandler>
                       <Input
-                        disabled
+                        type="time"
                         size="lg"
-                        onChange={() => null}
+                        // onChange={() => null}
                         placeholder="เลือกวันที่"
-                        value={date ? format(date, "PPP") : ""}
+                        //value={date ? format(date, "PPP") : ""}
                         labelProps={{
                           className: "hidden",
                         }}
                         className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                        name="name"
+                        value={values.dateTime ? format(values.dateTime, "dd-MM-yyyy") : ""}
+                        onChange={(e) =>
+                          setFieldValue("dateTime", e.target.value)
+                        }
+                        onBlur={handleBlur}
                       />
                     </PopoverHandler>
                     <PopoverContent>
                       <DayPicker
+                        
                         mode="single"
-                        selected={date}
-                        onSelect={setDate}
+                        selected={values.dateTime}
+                        onSelect={(select)=> setFieldValue("dateTime", select)}
+                        startMonth={Date.now()}
                         showOutsideDays
                         className="border-0"
                         classNames={{
@@ -450,9 +511,10 @@ export function JobInsert() {
                             />
                           ),
                         }}
+                        
                       />
                     </PopoverContent>
-                  </Popover>
+                  </Popover> */}
                 </div>
               </div>
               <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
@@ -470,7 +532,11 @@ export function JobInsert() {
                     labelProps={{
                       className: "hidden",
                     }}
-                    className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="objective"
+                    value={values.objective || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                   />
                 </div>
                 <div className="w-full">
@@ -487,7 +553,11 @@ export function JobInsert() {
                     labelProps={{
                       className: "hidden",
                     }}
-                    className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="tarket"
+                    value={values.tarket || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                   />
                 </div>
               </div>
@@ -506,7 +576,7 @@ export function JobInsert() {
                     labelProps={{
                       className: "hidden",
                     }}
-                    className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
                   />
                 </div>
                 <div className="w-full">
@@ -523,7 +593,7 @@ export function JobInsert() {
                     labelProps={{
                       className: "hidden",
                     }}
-                    className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
+                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
                   />
                 </div>
               </div>
@@ -533,7 +603,7 @@ export function JobInsert() {
                 <div className="flex items-center justify-center w-full">
                   <label
                     htmlFor="dropzone-file"
-                    className="flex flex-col items-center justify-center w-full h-64 bg-blue-50 border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium"
+                    className="flex flex-col items-center justify-center w-full h-64 bg-blue-gray-50 border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium"
                   >
                     <div className="flex flex-col items-center justify-center text-body pt-5 pb-6">
                       <svg
@@ -554,16 +624,35 @@ export function JobInsert() {
                         />
                       </svg>
                       <p className="mb-2 text-sm h">
-                        <span className="font-semibold">แนปไฟล์ตัวอย่าง (Refference)</span>{" "}
-                 
+                        <span className="font-medium text-xl">
+                          แนบไฟล์ตัวอย่าง (Refference)
+                        </span>{" "}
                       </p>
-                      {/* <p className="text-xs">
-                        SVG, PNG, JPG or GIF (MAX. 800x400px)
-                      </p> */}
+
+                      <p className="text-ปส">(ขนาดไฟล์สูงสุด 35MB)</p>
                     </div>
-                    <input id="dropzone-file" type="file" className="hidden" onChange={(e)=> handleUpload(e.target.files[0])} />
+
+                    <input
+                      // ref={fileInputRef}
+                      id="dropzone-file"
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => handleUpload(e.target.files[0])}
+                    />
                   </label>
                 </div>
+                {fileShow && (
+                  <div className="py-4">
+                    <h3 className="text-center text-3xl text-black pb-4">
+                      ตัวอย่างไฟล์ {fileUse.name}
+                    </h3>
+                    <iframe
+                      src={fileShow}
+                      className="w-full h-[100vh]"
+                      title="PDF Preview"
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="w-full flex justify-end gap-2">
