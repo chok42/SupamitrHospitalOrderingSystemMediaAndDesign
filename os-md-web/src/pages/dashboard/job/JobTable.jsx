@@ -5,12 +5,14 @@ import {
   Avatar,
   Button,
   CardHeader,
+  IconButton,
 } from "@material-tailwind/react";
-import { GetListJobService } from "@/services/job.service";
+import { DeleteJobService, GetListJobService } from "@/services/job.service";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusIcon } from "@heroicons/react/24/solid";
+import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 import MyContext from "@/context/MyContext";
+import Swal from "sweetalert2";
 
 export function JobTable() {
   const navigate = useNavigate();
@@ -29,6 +31,37 @@ export function JobTable() {
       setJobs([]);
     }
   };
+
+   const deleteJob = async (id) => {
+      await Swal.fire({
+        title: "คุณแน่ใจเหรอ?",
+        text: "คุณจะไม่สามารถย้อนกลับการเปลี่ยนแปลงนี้ได้!",
+        icon: "warning",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "ยืนยัน",
+        cancelButtonText: "ออก",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setLoader(true);
+          const resp = await DeleteJobService(id);
+          setLoader(false);
+          if (resp && resp.success) {
+            Swal.fire({
+              title: "สำเร็จ!",
+              text: "ไฟล์ของคุณถูกลบแล้ว.",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+            await fetchData();
+          }
+        }
+      });
+    };
+
   return (
     <div className="mt-12 mb-8 flex flex-col gap-12">
       {/* {jobs && jobs.length > 0 && (
@@ -100,15 +133,15 @@ export function JobTable() {
             </thead>
             <tbody>
               {jobs && jobs.length > 0 && jobs.map(
-                ({ code, name, members, budget, completion }, key) => {
+                ({ code, name, emp_name, budget, completion }, index) => {
                   const className = `py-3 px-5 ${
-                    key === jobs.length - 1
+                    index === jobs.length - 1
                       ? ""
                       : "border-b border-blue-gray-50"
                   }`;
 
                   return (
-                    <tr key={name}>
+                    <tr key={index}>
                       <td className={className}>
                         <div className="flex items-center gap-4">
                           {/* <Avatar src={img} alt={name} size="sm" /> */}
@@ -121,21 +154,24 @@ export function JobTable() {
                           </Typography>
                         </div>
                       </td>
-                      {/* <td className={className}>
-                        {members.map(({ img, name }, key) => (
-                          <Tooltip key={name} content={name}>
-                            <Avatar
-                              src={img}
-                              alt={name}
-                              size="xs"
-                              variant="circular"
-                              className={`cursor-pointer border-2 border-white ${
-                                key === 0 ? "" : "-ml-2.5"
-                              }`}
-                            />
-                          </Tooltip>
-                        ))}
+                      <td className={className}>
+                        <Typography
+                          variant="small"
+                          className="text-xs font-medium text-blue-gray-600"
+                        >
+                          {emp_name}
+                        </Typography>
                       </td>
+                      <td className={className}>
+                        <Typography
+                          variant="small"
+                          className="text-xs font-medium text-blue-gray-600"
+                        >
+                          {name}
+                        </Typography>
+                      </td>
+
+                      {/* 
                       <td className={className}>
                         <Typography
                           variant="small"
@@ -172,6 +208,22 @@ export function JobTable() {
                           />
                         </Typography>
                       </td> */}
+                      <td className={className}>
+                        <div className="flex gap-2">
+                          <IconButton
+                            className="bg-yellow-700"
+                            onClick={() => navigate("update", { state: id })}
+                          >
+                            <PencilIcon className="w-5 text-white" />
+                          </IconButton>
+                          <IconButton
+                            onClick={async () => await deleteJob(id)}
+                            className="bg-red-700"
+                          >
+                            <TrashIcon className="w-5 text-white" />
+                          </IconButton>
+                        </div>
+                      </td>
                     </tr>
                   );
                 }
