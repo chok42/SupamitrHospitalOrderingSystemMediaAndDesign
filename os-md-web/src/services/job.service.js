@@ -4,7 +4,7 @@ import { jobService } from "../helpers/contents";
 export const GetListJobService = async () => {
   try {
     const body = JSON.stringify({ action: "getlist" });
-    const resp = await axios.post(jobService.EMPLOYEE_URL, body);
+    const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json && json.success) {
       return json.data;
@@ -19,7 +19,7 @@ export const GetListJobService = async () => {
 export const GetByIdJobService = async (id) => {
   try {
     const body = JSON.stringify({ action: "getbyid", id});
-    const resp = await axios.post(jobService.EMPLOYEE_URL, body);
+    const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json && json.data) {
       return json.data
@@ -34,7 +34,7 @@ export const GetByIdJobService = async (id) => {
 export const InsertJobService = async (formData) => {
   try {
     const body = JSON.stringify({ action: "insert", ...formData});
-    const resp = await axios.post(jobService.EMPLOYEE_URL, body);
+    const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json) {
       return json
@@ -50,7 +50,7 @@ export const InsertJobService = async (formData) => {
 export const UpdateJobService = async (formData) => {
   try {
     const body = JSON.stringify({ action: "update", ...formData});
-    const resp = await axios.post(jobService.EMPLOYEE_URL, body);
+    const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json) {
       return json
@@ -65,7 +65,7 @@ export const UpdateJobService = async (formData) => {
 export const DeleteJobService = async (id) => {
   try {
     const body = JSON.stringify({ action: "delete", id});
-    const resp = await axios.post(jobService.EMPLOYEE_URL, body);
+    const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json) {
       return json
