@@ -80,10 +80,13 @@ export function Configurator() {
       <div className="flex items-start justify-between px-6 pt-8 pb-6">
         <div>
           <Typography variant="h5" color="blue-gray">
-            {dataEmp ? dataEmp.username : ""}
+            {dataEmp ? `${dataEmp.username}` : ""}
+          </Typography>
+          <Typography variant="paragraph" color="blue-gray">
+            {dataEmp ? `#${dataEmp.code}`: ""}
           </Typography>
           <Typography className="font-normal text-blue-gray-600">
-            See our dashboard options.
+            {dataEmp ? `${dataEmp.firstname} ${dataEmp.lastname}` : ""}
           </Typography>
         </div>
         <IconButton

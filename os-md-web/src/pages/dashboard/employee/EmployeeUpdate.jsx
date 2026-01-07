@@ -1,5 +1,5 @@
 import MyContext from "@/context/MyContext";
-import { departmentsData, positionData, roleData } from "@/data";
+import { dpmData, positionData, roleData } from "@/data";
 // import { GetListDepartmentService } from "@/services/department.service";
 import {
   GetByIdEmployeeService,
@@ -293,7 +293,7 @@ export function EmployeeUpdate() {
                       )}
                     >
                       <option value="">แผนก</option>
-                      {departmentsData.map(({ id, name }) => (
+                      {dpmData.map(({ id, name }) => (
                         <option value={id}>{name}</option>
                       ))}
                     </select>

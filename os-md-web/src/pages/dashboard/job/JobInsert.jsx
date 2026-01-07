@@ -2,109 +2,79 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import * as Yup from "yup";
-import { format } from "date-fns";
-import { DayPicker } from "react-day-picker";
 //context
 import MyContext from "@/context/MyContext";
 //service
-//import { GetListDepartmentService } from "@/services/department.service";
-//import { GetListPositionService } from "@/services/position.service";
-//import { GetListRoleService } from "@/services/role.service";
-import { GetListEmployeeService, InsertEmployeeService } from "@/services/employee.service";
+
+import { GetListEmployeeByRoleService } from "@/services/employee.service";
+import { InsertJobService } from "@/services/job.service";
 import {
-  EyeIcon,
-  EyeSlashIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   InformationCircleIcon,
-  MusicalNoteIcon,
-  ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 import {
   Card,
   Input,
   Button,
   Typography,
-  Textarea,
-  Popover,
   PopoverHandler,
+  Popover,
   PopoverContent,
+  Textarea,
 } from "@material-tailwind/react";
-import { departmentsData, positionData, roleData } from "@/data";
+import { format, setDate } from "date-fns";
+import { th } from "date-fns/locale";
 import jobTypeData from "@/data/jobtype-data";
-import jobStatusData from "@/data/jobstatus-data";
-import { InsertJobService } from "@/services/job.service";
+import { DayPicker } from "react-day-picker";
 
-const employeeSchema = Yup.object().shape({
-  // code: Yup.string().required("กรุณาระบุข้อมูล"),
-  // username: Yup.string().required("กรุณาระบุข้อมูล"),
-  // password: Yup.string().required("กรุณาระบุข้อมูล"),
-  // pst_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // dpm_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // role_id: Yup.string().required("กรุณาระบุข้อมูล"),
+const jobSchema = Yup.object().shape({
+  name: Yup.string().required("กรุณาระบุข้อมูล"),
+  dateTime: Yup.string().required("กรุณาระบุข้อมูล"),
+  jobTime: Yup.string().required("กรุณาระบุข้อมูล"),
 });
 
-export function JobInsert() {
+export const JobInsert = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const { dataEmp, setLoader } = useContext(MyContext);
-  const [showPassword, setShowPassword] = useState(false);
-  const [date, setDate] = useState();
+  const { dataEmp, loader, setLoader } = useContext(MyContext);
   const [fileUse, setFileUse] = useState();
   const [fileBase64, setFileBase64] = useState();
   const [fileShow, setFileShow] = useState();
-  const [employees, setEmployees] = useState([])
-  // const [departments, setDepartments] = useState([]);
-  // const [positions, setPositions] = useState([]);
-  // const [roles, setRoles] = useState([]);
-
-  // useMemo(async () => {
-  //   setLoader(true);
-  //   const res_dpm = await GetListDepartmentService();
-  //   const res_role = await GetListRoleService();
-  //   const res_pst = await GetListPositionService();
-  //   setLoader(false);
-
-  //   if (res_dpm) {
-  //     setDepartments(res_dpm);
-  //   }
-  //   if (res_role) {
-  //     setRoles(res_role);
-  //   }
-  //   if (res_pst) {
-  //     setPositions(res_pst);
-  //   }
-  // }, []);
+  const [employees, setEmployees] = useState([]);
 
   useMemo(async () => {
-  const resEmp =  await GetListEmployeeService()
-  setEmployees
-  }, [])
+    setLoader(true);
+    const resEmp = await GetListEmployeeByRoleService("1");
+    setLoader(false);
+    if (resEmp) {
+      setEmployees(resEmp);
+    } else {
+      setEmployees([]);
+    }
+  }, []);
 
   const onSubmitJob = async (value) => {
     setLoader(true);
     const newValue = {
       ...value,
+      dateTime:
+        `${format(value.dateTime, "dd/MM/yyyy")}, ${value.jobTime}` || "",
       file: fileBase64 ? fileBase64 : "",
       fileName: fileBase64 ? fileUse.name : "",
       mimeType: fileBase64 ? fileUse.type : "",
     };
-
-
     const resp = await InsertJobService(newValue);
-    setLoader(false);
 
     if (resp && resp.success) {
       navigate(-1);
     }
   };
 
-  const handleButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
   const handleUpload = async (file) => {
     const reader = new FileReader();
     setFileUse(file);
-    setFileShow(null)
+    setFileShow(null);
     reader.onloadend = async () => {
       const base64 = reader.result.split(",")[1];
       setFileBase64(base64);
@@ -114,11 +84,8 @@ export function JobInsert() {
     reader.readAsDataURL(file);
   };
 
-  console.log("fileUse", fileUse);
-  console.log("fileBase64", fileBase64);
-
   return (
-    <Card shadow={true} className="px-8 py-20 container mx-auto">
+    <Card shadow={true} className="px-8 py-20 mt-2 container mx-auto">
       <Typography variant="h5" color="blue-gray">
         แบบฟอร์มแจ้งงาน (Brief Form)
       </Typography>
@@ -130,7 +97,8 @@ export function JobInsert() {
           code: "",
           name: "",
           detail: "",
-          dateTime: "",
+          dateTime: Date.now(),
+          jobTime: "",
           creationDate: "",
           tarket: "",
           objective: "",
@@ -138,15 +106,15 @@ export function JobInsert() {
           mes_format: "",
           file: "",
           type_id: "",
-          status_id: "",
-          rvw_id: "",
+          status_id: "S01",
+          rec_id: "",
           rvw_name: "",
-          emp_id: dataEmp ? dataEmp.empId : "",
+          emp_id: dataEmp ? dataEmp.id : "",
           emp_name: dataEmp ? dataEmp.firstname : "",
-          dpm_id: "",
-          pst_id: "",
+          dpm_id: dataEmp ? dataEmp.dpm_id ?? "" : "",
+          pst_id: dataEmp ? dataEmp.pst_id ?? "" : "",
         }}
-        validationSchema={employeeSchema}
+        validationSchema={jobSchema}
         onSubmit={(value) => onSubmitJob(value)}
       >
         {({
@@ -168,16 +136,6 @@ export function JobInsert() {
                 >
                   ผู้แจ้ง
                 </Typography>
-                {/* <Input
-                  disabled
-                  size="lg"
-                  placeholder="Supamitr"
-                  labelProps={{
-                    className: "hidden",
-                  }}
-                  className="w-full placeholder:opacity-100 focus:border-t-gray-700 border-t-blue-gray-200"
-                  value={values.firstname}
-                /> */}
 
                 {dataEmp && (
                   <Typography
@@ -185,212 +143,63 @@ export function JobInsert() {
                     color="blue-gray"
                     className="w-full bg-blue-gray-50 rounded-md p-2 placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-300"
                   >
-                    {`รหัส: ${dataEmp.code} ชื่อ: คุณ ${dataEmp.firstname}`}
+                    {`รหัส: ${dataEmp.code || ""} ชื่อ: คุณ ${
+                      dataEmp.firstname || ""
+                    }`}
                   </Typography>
                 )}
               </div>
             )}
-            <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
-              <div className="w-full">
-                <select
-                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                  value={values.dpm_id}
-                  onChange={(e) => setFieldValue("dpm_id", e.target.value)}
-                  error={Boolean(
-                    touched && touched.dpm_id && errors && errors.dpm_id
-                  )}
-                >
-                  <option value="">เลือกแผนก</option>
-                  {departmentsData.map(({ id, name }, index) => (
-                    <option key={index} value={id}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="w-full">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="mb-2 font-medium"
-                >
-                  ผู้ตรวจสอบงาน (Reviewer)
-                </Typography>
 
-                <select
-                  className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                  value={values.rvw_id}
-                  onChange={(e) => setFieldValue("rvw_id", e.target.value)}
-                  error={Boolean(
-                    touched && touched.rvw_id && errors && errors.rvw_id
-                  )}
-                >
-                  <option value="">เลือกชื่อผู้ตรวจสอบ...</option>
-                  {/* {departmentsData.map(({ id, name }) => (
-                    <option value={id}>{name}</option>
-                  ))} */}
-                </select>
-              </div>
-            </div>
-            {/* <div className="mb-6 flex flex-col gap-4 md:flex-row">
-              <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="mb-2 font-medium"
-            >
-              I&apos;m
-            </Typography>
-            <Select
-              size="lg"
-              labelProps={{
-                className: "hidden",
-              }}
-              className="border-t-blue-gray-200 aria-[expanded=true]:border-t-primary"
-            >
-              <Option>Male</Option>
-              <Option>Female</Option>
-            </Select>
-          </div>
-              <div className="w-full">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="mb-2 font-medium"
-                >
-                  Birth Date
-                </Typography>
-                <Popover placement="bottom">
-              <PopoverHandler>
-                <Input
-                  size="lg"
-                  onChange={() => null}
-                  placeholder="Select a Date"
-                  value={date ? format(date, "PPP") : ""}
-                  labelProps={{
-                    className: "hidden",
-                  }}
-                  className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
-                />
-              </PopoverHandler>
-              <PopoverContent>
-                <DayPicker
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate as any}
-                  showOutsideDays
-                  className="border-0"
-                  classNames={{
-                    caption:
-                      "flex justify-center py-2 mb-4 relative items-center",
-                    caption_label: "text-sm !font-medium text-gray-900",
-                    nav: "flex items-center",
-                    nav_button:
-                      "h-6 w-6 bg-transparent hover:bg-blue-gray-50 p-1 rounded-md transition-colors duration-300",
-                    nav_button_previous: "absolute left-1.5",
-                    nav_button_next: "absolute right-1.5",
-                    table: "w-full border-collapse",
-                    head_row: "flex !font-medium text-gray-900",
-                    head_cell: "m-0.5 w-9 !font-normal text-sm",
-                    row: "flex w-full mt-2",
-                    cell: "text-gray-600 rounded-md h-9 w-9 text-center text-sm p-0 m-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gray-900/20 [&:has([aria-selected].day-outside)]:text-white [&:has([aria-selected])]:bg-gray-900/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                    day: "h-9 w-9 p-0 !font-normal",
-                    day_range_end: "day-range-end",
-                    day_selected:
-                      "rounded-md bg-gray-900 text-white hover:bg-gray-900 hover:text-white focus:bg-gray-900 focus:text-white",
-                    day_today: "rounded-md bg-gray-200 text-gray-900",
-                    day_outside:
-                      "day-outside text-gray-500 opacity-50 aria-selected:bg-gray-500 aria-selected:text-gray-900 aria-selected:bg-opacity-10",
-                    day_disabled: "text-gray-500 opacity-50",
-                    day_hidden: "invisible",
-                  }}
-                  components={{
-                    IconLeft: ({ ...props }) => (
-                      <ChevronLeftIcon
-                        {...props}
-                        className="h-4 w-4 stroke-2"
-                      />
-                    ),
-                    IconRight: ({ ...props }) => (
-                      <ChevronRightIcon
-                        {...props}
-                        className="h-4 w-4 stroke-2"
-                      />
-                    ),
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-              </div>
-              <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="mb-2 font-medium"
-            >
-              Day
-            </Typography>
-            <Select
-              size="lg"
-              labelProps={{
-                className: "hidden",
-              }}
-              className="border-t-blue-gray-200 aria-[expanded=true]:border-t-primary"
-            >
-              <Option>1</Option>
-              <Option>2</Option>
-              <Option>3</Option>
-              <Option>4</Option>
-              <Option>5</Option>
-              <Option>6</Option>
-              <Option>7</Option>
-              <Option>8</Option>
-              <Option>9</Option>
-              <Option>10</Option>
-              <Option>11</Option>
-              <Option>12</Option>
-              <Option>13</Option>
-              <Option>14</Option>
-              <Option>15</Option>
-              <Option>16</Option>
-              <Option>17</Option>
-              <Option>18</Option>
-              <Option>19</Option>
-              <Option>20</Option>
-              <Option>21</Option>
-              <Option>22</Option>
-              <Option>23</Option>
-              <Option>24</Option>
-              <Option>25</Option>
-              <Option>26</Option>
-              <Option>27</Option>
-              <Option>28</Option>
-              <Option>29</Option>
-              <Option>30</Option>
-            </Select>
-          </div>
-              <div className="w-full">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="mb-2 font-medium"
-            >
-              Year
-            </Typography>
-            <Select
-              size="lg"
-              labelProps={{
-                className: "hidden",
-              }}
-              className="border-t-blue-gray-200 aria-[expanded=true]:border-t-primary"
-            >
-              <Option>2022</Option>
-              <Option>2021</Option>
-              <Option>2020</Option>
-            </Select>
-          </div>
-            </div> */}
             <div className="w-full bg-blue-gray-50 rounded-md p-2">
+              <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    ผู้ตรวจสอบงาน (Reviewer)
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="Supamitr"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="rvw_name"
+                    value={values.rvw_name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    ประเภทงาน
+                  </Typography>
+                  <select
+                    className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+                    name="type_id"
+                    value={values.type_id}
+                    onChange={(e) => setFieldValue("type_id", e.target.value)}
+                    error={Boolean(
+                      touched && touched.type_id && errors && errors.type_id
+                    )}
+                  >
+                    <option value="">ประเภทงาน</option>
+                    {jobTypeData.map(({ id, name }, index) => (
+                      <option key={index} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <Typography
                 variant="small"
                 color="blue-gray"
@@ -410,11 +219,11 @@ export function JobInsert() {
                   </Typography>
                   <Input
                     size="lg"
-                    placeholder="emma@mail.com"
+                    placeholder="เช่น ออกแบบภาพ"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     labelProps={{
-                      className: "hidden",
+                      className: "before:content-none after:content-none",
                     }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
                     name="name"
                     value={values.name || ""}
                     onChange={handleChange}
@@ -429,95 +238,89 @@ export function JobInsert() {
                   >
                     กำหนดส่ง
                   </Typography>
-                  <Input
-                    type="datetime-local"
-                    size="lg"
-                    // onChange={() => null}
-                    placeholder="เลือกวันที่"
-                    //value={date ? format(date, "PPP") : ""}
-                    labelProps={{
-                      className: "hidden",
-                    }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
-                    name="dateTime"
-                    value={values.dateTime}
-                    onChange={(e) => setFieldValue("dateTime", e.target.value)}
-                    onBlur={handleBlur}
-                  />
-                  {/* <Popover placement="bottom">
-                    <PopoverHandler>
-                      <Input
-                        type="time"
-                        size="lg"
-                        // onChange={() => null}
-                        placeholder="เลือกวันที่"
-                        //value={date ? format(date, "PPP") : ""}
-                        labelProps={{
-                          className: "hidden",
-                        }}
-                        className="w-full placeholder:opacity-100 focus:border-t-primary border-t-blue-gray-200"
-                        name="name"
-                        value={values.dateTime ? format(values.dateTime, "dd-MM-yyyy") : ""}
-                        onChange={(e) =>
-                          setFieldValue("dateTime", e.target.value)
-                        }
-                        onBlur={handleBlur}
-                      />
-                    </PopoverHandler>
-                    <PopoverContent>
-                      <DayPicker
-                        
-                        mode="single"
-                        selected={values.dateTime}
-                        onSelect={(select)=> setFieldValue("dateTime", select)}
-                        startMonth={Date.now()}
-                        showOutsideDays
-                        className="border-0"
-                        classNames={{
-                          caption:
-                            "flex justify-center py-2 mb-4 relative items-center",
-                          caption_label: "text-sm !font-medium text-gray-900",
-                          nav: "flex items-center",
-                          nav_button:
-                            "h-6 w-6 bg-transparent hover:bg-blue-gray-50 p-1 rounded-md transition-colors duration-300",
-                          nav_button_previous: "absolute left-1.5",
-                          nav_button_next: "absolute right-1.5",
-                          table: "w-full border-collapse",
-                          head_row: "flex !font-medium text-gray-900",
-                          head_cell: "m-0.5 w-9 !font-normal text-sm",
-                          row: "flex w-full mt-2",
-                          cell: "text-gray-600 rounded-md h-9 w-9 text-center text-sm p-0 m-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gray-900/20 [&:has([aria-selected].day-outside)]:text-white [&:has([aria-selected])]:bg-gray-900/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                          day: "h-9 w-9 p-0 !font-normal",
-                          day_range_end: "day-range-end",
-                          day_selected:
-                            "rounded-md bg-gray-900 text-white hover:bg-gray-900 hover:text-white focus:bg-gray-900 focus:text-white",
-                          day_today: "rounded-md bg-gray-200 text-gray-900",
-                          day_outside:
-                            "day-outside text-gray-500 opacity-50 aria-selected:bg-gray-500 aria-selected:text-gray-900 aria-selected:bg-opacity-10",
-                          day_disabled: "text-gray-500 opacity-50",
-                          day_hidden: "invisible",
-                        }}
-                        components={{
-                          IconLeft: ({ ...props }) => (
-                            <ChevronLeftIcon
-                              {...props}
-                              className="h-4 w-4 stroke-2"
-                            />
-                          ),
-                          IconRight: ({ ...props }) => (
-                            <ChevronRightIcon
-                              {...props}
-                              className="h-4 w-4 stroke-2"
-                            />
-                          ),
-                        }}
-                        
-                      />
-                    </PopoverContent>
-                  </Popover> */}
+                  <div className="flex gap-2">
+                    <Popover placement="bottom">
+                      <PopoverHandler>
+                        <Input
+                          placeholder=""
+                          size="lg"
+                          className=" rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          labelProps={{
+                            className: "before:content-none after:content-none",
+                          }}
+                          onChange={() => null}
+                          value={
+                            values.dateTime
+                              ? format(values.dateTime, "dd/MM/yyyy")
+                              : format(Date.now(), "dd/MM/yyyy")
+                          }
+                        />
+                      </PopoverHandler>
+                      <PopoverContent>
+                        <DayPicker
+                          mode="single"
+                          startMonth={Date.now()}
+                          selected={values.dateTime}
+                          onSelect={(date) => setFieldValue("dateTime", date)}
+                          showOutsideDays
+                          className="border-0"
+                          classNames={{
+                            caption:
+                              "flex justify-center py-2 mb-4 relative items-center",
+                            caption_label: "text-sm font-medium text-gray-900",
+                            nav: "flex items-center",
+                            nav_button:
+                              "h-6 w-6 bg-transparent hover:bg-blue-gray-50 p-1 rounded-md transition-colors duration-300",
+                            nav_button_previous: "absolute left-1.5",
+                            nav_button_next: "absolute right-1.5",
+                            table: "w-full border-collapse",
+                            head_row: "flex font-medium text-gray-900",
+                            head_cell: "m-0.5 w-9 font-normal text-sm",
+                            row: "flex w-full mt-2",
+                            cell: "text-gray-600 rounded-md h-9 w-9 text-center text-sm p-0 m-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gray-900/20 [&:has([aria-selected].day-outside)]:text-white [&:has([aria-selected])]:bg-gray-900/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-9 w-9 p-0 font-normal",
+                            day_range_end: "day-range-end",
+                            day_selected:
+                              "rounded-md bg-gray-900 text-white hover:bg-gray-900 hover:text-white focus:bg-gray-900 focus:text-white",
+                            day_today: "rounded-md bg-gray-200 text-gray-900",
+                            day_outside:
+                              "day-outside text-gray-500 opacity-50 aria-selected:bg-gray-500 aria-selected:text-gray-900 aria-selected:bg-opacity-10",
+                            day_disabled: "text-gray-500 opacity-50",
+                            day_hidden: "invisible",
+                          }}
+                          components={{
+                            IconLeft: ({ ...props }) => (
+                              <ChevronLeftIcon
+                                {...props}
+                                className="h-4 w-4 stroke-2"
+                              />
+                            ),
+                            IconRight: ({ ...props }) => (
+                              <ChevronRightIcon
+                                {...props}
+                                className="h-4 w-4 stroke-2"
+                              />
+                            ),
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Input
+                      type="time"
+                      size="lg"
+                      className="w-[120px] rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      labelProps={{
+                        className: "before:content-none after:content-none",
+                      }}
+                      name="jobTime"
+                      value={values.jobTime || ""}
+                      onChange={(e) => setFieldValue("jobTime", e.target.value)}
+                      onBlur={handleBlur}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+              <div className="mb-3 flex flex-col items-end gap-4 md:flex-row">
                 <div className="w-full">
                   <Typography
                     variant="small"
@@ -529,10 +332,10 @@ export function JobInsert() {
                   <Input
                     size="lg"
                     placeholder="เช่น กระตุ้นยอดขาย"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     labelProps={{
-                      className: "hidden",
+                      className: "before:content-none after:content-none",
                     }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
                     name="objective"
                     value={values.objective || ""}
                     onChange={handleChange}
@@ -550,10 +353,10 @@ export function JobInsert() {
                   <Input
                     size="lg"
                     placeholder="เช่น ลูกค้าใหม่"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     labelProps={{
-                      className: "hidden",
+                      className: "before:content-none after:content-none",
                     }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
                     name="tarket"
                     value={values.tarket || ""}
                     onChange={handleChange}
@@ -561,7 +364,7 @@ export function JobInsert() {
                   />
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-4 md:flex-row">
+              <div className="mb-3 flex flex-col items-end gap-4 md:flex-row">
                 <div className="w-full">
                   <Typography
                     variant="small"
@@ -573,10 +376,14 @@ export function JobInsert() {
                   <Input
                     size="lg"
                     placeholder="เช่น สนุกสนาน, ทางการ..."
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     labelProps={{
-                      className: "hidden",
+                      className: "before:content-none after:content-none",
                     }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="mode_tone"
+                    value={values.mode_tone || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                   />
                 </div>
                 <div className="w-full">
@@ -590,12 +397,36 @@ export function JobInsert() {
                   <Input
                     size="lg"
                     placeholder="ข้อความหลัก / ขนาดภาพ"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     labelProps={{
-                      className: "hidden",
+                      className: "before:content-none after:content-none",
                     }}
-                    className="w-full placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-400"
+                    name="mes_format"
+                    value={values.mes_format || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                   />
                 </div>
+              </div>
+
+              <div className="w-full">
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="mb-2 font-medium"
+                >
+                  รายละเอียดเพิ่มเติม
+                </Typography>
+                <Textarea
+                  className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  labelProps={{
+                    className: "before:content-none after:content-none",
+                  }}
+                  name="detail"
+                  value={values.detail}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
               </div>
             </div>
             <div className="flex flex-col items-end gap-4 md:flex-row mt-2">
@@ -657,13 +488,18 @@ export function JobInsert() {
             </div>
             <div className="w-full flex justify-end gap-2">
               <Button
+                disabled={loader}
                 onClick={() => navigate(-1)}
                 color="blue"
                 className="mt-6"
               >
                 ย้อนกลับ
               </Button>
-              <Button type="submit" className="mt-6 bg-[#44AA32]">
+              <Button
+                disabled={loader}
+                type="submit"
+                className="mt-6 bg-[#44AA32]"
+              >
                 บันทึก
               </Button>
             </div>
@@ -672,6 +508,6 @@ export function JobInsert() {
       </Formik>
     </Card>
   );
-}
+};
 
 export default JobInsert;

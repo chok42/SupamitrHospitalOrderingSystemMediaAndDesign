@@ -11,7 +11,7 @@ import MyContext from "@/context/MyContext";
 import { InsertEmployeeService } from "@/services/employee.service";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
-import { departmentsData, positionData, roleData } from "@/data";
+import {  dpmData, positionData, roleData } from "@/data";
 
 const employeeSchema = Yup.object().shape({
   code: Yup.string().required("กรุณาระบุข้อมูล"),
@@ -270,7 +270,7 @@ export function EmployeeInsert() {
                       )}
                     >
                       <option value="">แผนก</option>
-                      {departmentsData.map(({ id, name }) => (
+                      {dpmData.map(({ id, name }) => (
                         <option value={id}>{name}</option>
                       ))}
                     </select>

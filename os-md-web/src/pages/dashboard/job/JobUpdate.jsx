@@ -1,353 +1,533 @@
-import MyContext from "@/context/MyContext";
-import { departmentsData, positionData, roleData } from "@/data";
-// import { GetListDepartmentService } from "@/services/department.service";
-import {
-  GetByIdEmployeeService,
-  InsertEmployeeService,
-  UpdateEmployeeService,
-} from "@/services/employee.service";
-// import { GetListPositionService } from "@/services/position.service";
-// import { GetListRoleService } from "@/services/role.service";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
-import {
-  Card,
-  Input,
-  Checkbox,
-  Button,
-  Typography,
-  CardHeader,
-  Select,
-  Option,
-} from "@material-tailwind/react";
-import { Form, Formik } from "formik";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Form, Formik } from "formik";
 import * as Yup from "yup";
+//context
+import MyContext from "@/context/MyContext";
+//service
 
-const employeeSchema = Yup.object().shape({
-  code: Yup.string().required("กรุณาระบุข้อมูล"),
-  username: Yup.string().required("กรุณาระบุข้อมูล"),
-  // password: Yup.string().required("กรุณาระบุข้อมูล"),
-  // pst_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // dpm_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // role_id: Yup.string().required("กรุณาระบุข้อมูล"),
+import { GetListEmployeeByRoleService } from "@/services/employee.service";
+import { GetByIdJobService, UpdateJobService } from "@/services/job.service";
+import { InformationCircleIcon } from "@heroicons/react/24/solid";
+import { Card, Input, Button, Typography } from "@material-tailwind/react";
+import { dpmData, positionData, roleData } from "@/data";
+
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
+
+const jobSchema = Yup.object().shape({
+  // code: Yup.string().required("กรุณาระบุข้อมูล"),
 });
 
 export function JobUpdate() {
+  const locatoin = useLocation();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { loader, setLoader } = useContext(MyContext);
-  const [showPassword, setShowPassword] = useState(false);
-  const [employee, setEmployee] = useState();
-  // const [departments, setDepartments] = useState([]);
-  // const [positions, setPositions] = useState([]);
-  // const [roles, setRoles] = useState([]);
+  const fileInputRef = useRef(null);
+  const { dataEmp, loader, setLoader } = useContext(MyContext);
+  const [job, setJob] = useState();
+  const [employees, setEmployees] = useState([]);
+  const [fileUse, setFileUse] = useState();
+  const [fileBase64, setFileBase64] = useState();
+  const [fileShow, setFileShow] = useState();
 
   useMemo(async () => {
-    if (location.state) {
-      setLoader(true);
-      const resp = await GetByIdEmployeeService(location.state);
-      // const res_dpm = await GetListDepartmentService();
-      // const res_role = await GetListRoleService();
-      // const res_pst = await GetListPositionService();
-      setLoader(false);
-      if (resp) {
-        setEmployee(resp);
-      } else {
-        setEmployee();
+    setLoader(true);
+    if (locatoin.state) {
+      const resJob = await GetByIdJobService(locatoin.state);
+      if (resJob) {
+        setJob(resJob);
       }
-      // if (res_dpm) {
-      //   setDepartments(res_dpm);
-      // }
-      // if (res_role) {
-      //   setRoles(res_role);
-      // }
-      // if (res_pst) {
-      //   setPositions(res_pst);
-      // }
+    }
+
+    const resEmp = await GetListEmployeeByRoleService("1");
+    setLoader(false);
+    if (resEmp) {
+      setEmployees(resEmp);
+    } else {
+      setEmployees([]);
     }
   }, []);
 
-  const onSubmitEmployee = async (value) => {
-    setLoader(true);
-    const newValue = {
-      ...value,
-      role_id: value.role_id.toString(),
-      dpm_id: value.dpm_id.toString(),
-      pst_id: value.pst_id.toString(),
+  const convertDriveImage = (url) => {
+    //ConvertDriveLinkToDirectImage
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+    if (match && match[1]) {
+      const fileId = match[1];
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return ""; // or handle invalid format
+  };
+
+  const convertDriveIFrame = (url) => {
+    //ConvertDriveLinkToDirectImage
+
+    if (url) {
+      const fileId = url.match(/[-\w]{25,}/)[0];
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return ""; // or handle invalid format
+  };
+
+  const handleUpload = async (file) => {
+    const reader = new FileReader();
+    setFileUse(file);
+    setFileShow(null);
+    reader.onloadend = async () => {
+      const base64 = reader.result.split(",")[1];
+      setFileBase64(base64);
+      const url = URL.createObjectURL(file);
+      setFileShow(url);
     };
-    const resp = await UpdateEmployeeService(newValue);
-    console.log("resp", resp);
+    reader.readAsDataURL(file);
+  };
+
+  const onSubmitJob = async (value) => {
+    setLoader(true);
+    let newValue = value;
+    if (fileBase64) {
+      newValue = {
+        ...value,
+        new_file: fileBase64 ? fileBase64 : "",
+        fileName: fileBase64 ? fileUse.name : "",
+        mimeType: fileBase64 ? fileUse.type : "",
+      };
+    }
+
+    const resp = await UpdateJobService(newValue);
+    console.log("resp:", resp);
 
     setLoader(false);
+
     if (resp && resp.success) {
       navigate(-1);
     }
   };
+
   return (
-    <div className="flex justify-center min-h-[75vh]">
-      <Card color="transparent" shadow={true} className="p-6">
-        <Typography variant="h3" className="text-[#0057A1] text-center">
-          อัปเดตข้อมูลพนักงาน
-        </Typography>
+    <Card shadow={true} className="px-8 py-20 container mx-auto">
+      <Typography variant="h5" color="blue-gray">
+        แบบฟอร์มแจ้งงาน (Brief Form)
+      </Typography>
+      <Typography variant="small" className="text-gray-600 font-normal mt-1">
+        กรุณากรอกข้อมูลให้ครบถ้วนเพื่อความรวดเร็ว
+      </Typography>
+      <Formik
+        enableReinitialize
+        initialValues={{
+          id: job ? job.id ?? "" : "",
+          name: job ? job.name ?? "" : "",
+          detail: job ? job.detail ?? "" : "",
+          dateTime: job
+            ? format(job.dateTime, "yyyy-MM-dd HH:mm", { locale: th }) ?? ""
+            : "",
+          countUpdate: "",
+          tarket: job ? job.tarket ?? "" : "",
+          objective: job ? job.objective ?? "" : "",
+          mode_tone: job ? job.mode_tone ?? "" : "",
+          mes_format: job ? job.mes_format ?? "" : "",
+          file: job ? job.file ?? "" : "",
+          type_id: job ? job.type_id ?? "" : "",
+          status_id: job ? job.status_id ?? "" : "",
+          rec_id: job ? job.rec_id ?? "" : "",
+          rvw_name: "",
+          emp_id: dataEmp ? dataEmp.id : "",
+          emp_name: dataEmp ? dataEmp.firstname : "",
+          dpm_id: job ? job.dpm_id ?? "" : "",
+          pst_id: job ? job.pst_id ?? "" : "",
+        }}
+        validationSchema={jobSchema}
+        onSubmit={(value) => onSubmitJob(value)}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          setFieldValue,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+        }) => (
+     <Form onSubmit={handleSubmit} className="flex flex-col mt-8">
+            {dataEmp && (
+              <div className=" mb-6 w-full">
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="mb-2 font-medium"
+                >
+                  ผู้แจ้ง
+                </Typography>
 
-        <Formik
-          enableReinitialize
-          initialValues={{
-            id: employee ? employee.id ?? "" : "",
-            code: employee ? employee.code ?? "" : "",
-            username: employee ? employee.username ?? "" : "",
-            password: employee ? employee.password ?? "" : "",
-            firstname: employee ? employee.firstname ?? "" : "",
-            lastname: employee ? employee.lastname ?? "" : "",
-            phone: employee ? employee.phone ?? "" : "",
-            email: employee ? employee.email ?? "" : "",
-            picture: employee ? employee.picture ?? "" : "",
-            role_id: employee ? employee.role_id ?? "" : "",
-            dpm_id: employee ? employee.dpm_id ?? "" : "",
-            pst_id: employee ? employee.pst_id ?? "" : "",
-          }}
-          validationSchema={employeeSchema}
-          onSubmit={(value) => onSubmitEmployee(value)}
-        >
-          {({
-            values,
-            errors,
-            touched,
-            setFieldValue,
-            handleChange,
-            handleBlur,
-            handleSubmit,
-          }) => (
-            <Form onSubmit={handleSubmit} className="h-full mt-8">
-              <div className=" w-full h-full flex flex-col justify-between ">
-                <div className="flex w-full flex-wrap max-w-3xl  ">
-                  <div className="flex flex-col  xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="รหัสพนักงาน"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched && touched.code && errors && errors.code
-                      )}
-                      name="code"
-                      value={values.code}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched && touched.code && errors && errors.code && (
-                      <p className="font-normal text-red-500 text-[12px]">
-                        {errors.code}
-                      </p>
-                    )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="ชื่อผู้ใช้งาน"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched && touched.username && errors && errors.username
-                      )}
-                      name="username"
-                      value={values.username}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched &&
-                      touched.username &&
-                      errors &&
-                      errors.username && (
-                        <p className="font-normal text-red-500 text-[12px]">
-                          {errors.username}
-                        </p>
-                      )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      label="รหัสผ่านใหม่"
-                      type={showPassword ? "text" : "password"}
-                      size="lg"
-                      icon={
-                        showPassword ? (
-                          <EyeIcon onClick={() => setShowPassword(false)} />
-                        ) : (
-                          <EyeSlashIcon onClick={() => setShowPassword(true)} />
-                        )
-                      }
-                      error={Boolean(
-                        touched && touched.password && errors && errors.password
-                      )}
-                      name="password"
-                      value={values.password}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched &&
-                      touched.password &&
-                      errors &&
-                      errors.password && (
-                        <p className="font-normal text-red-500 text-[12px]">
-                          {errors.password}
-                        </p>
-                      )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="ชื่อจริง"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched &&
-                          touched.firstname &&
-                          errors &&
-                          errors.firstname
-                      )}
-                      name="firstname"
-                      value={values.firstname}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched &&
-                      touched.firstname &&
-                      errors &&
-                      errors.firstname && (
-                        <p className="font-normal text-red-500 text-[12px]">
-                          {errors.firstname}
-                        </p>
-                      )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="นามสกุล"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched && touched.lastname && errors && errors.lastname
-                      )}
-                      name="lastname"
-                      value={values.lastname}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched &&
-                      touched.lastname &&
-                      errors &&
-                      errors.lastname && (
-                        <p className="font-normal text-red-500 text-[12px]">
-                          {errors.lastname}
-                        </p>
-                      )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="เบอร์โทรศัพท์"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched && touched.phone && errors && errors.phone
-                      )}
-                      name="phone"
-                      value={values.phone}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched && touched.phone && errors && errors.phone && (
-                      <p className="font-normal text-red-500 text-[12px]">
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <Input
-                      type="text"
-                      label="อีเมล"
-                      variant="outlined"
-                      size="lg"
-                      error={Boolean(
-                        touched && touched.email && errors && errors.email
-                      )}
-                      name="email"
-                      value={values.email}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                    {touched && touched.email && errors && errors.email && (
-                      <p className="font-normal text-red-500 text-[12px]">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <select
-                      className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                      value={values.dpm_id}
-                      onChange={(e) => setFieldValue("dpm_id", e.target.value)}
-                      error={Boolean(
-                        touched && touched.dpm_id && errors && errors.dpm_id
-                      )}
-                    >
-                      <option value="">แผนก</option>
-                      {departmentsData.map(({ id, name }) => (
-                        <option value={id}>{name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <select
-                      className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                      value={values.pst_id}
-                      onChange={(e) => setFieldValue("pst_id", e.target.value)}
-                      error={Boolean(
-                        touched && touched.pst_id && errors && errors.pst_id
-                      )}
-                    >
-                      <option value="">ตำแหน่ง</option>
-                      {positionData.map(({ id, name }) => (
-                        <option value={id}>{name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
-                    <select
-                      className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
-                      value={values.role_id}
-                      onChange={(e) => setFieldValue("role_id", e.target.value)}
-                      error={Boolean(
-                        touched && touched.role_id && errors && errors.role_id
-                      )}
-                    >
-                      <option value="">สิทธิ์การใช้งาน</option>
-                      {roleData.map(({ id, name }) => (
-                        <option value={id}>{name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="w-full flex justify-end gap-2">
-                  <Button
-                    onClick={() => navigate(-1)}
-                    color="blue"
-                    className="mt-6"
+                {dataEmp && (
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="w-full bg-blue-gray-50 rounded-md p-2 placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-300"
                   >
-                    ย้อนกลับ
-                  </Button>
-                  <Button type="submit" className="mt-6 bg-[#44AA32]">
-                    บันทึก
-                  </Button>
+                    {`รหัส: ${dataEmp.code || ""} ชื่อ: คุณ ${
+                      dataEmp.firstname || ""
+                    }`}
+                  </Typography>
+                )}
+              </div>
+            )}
+
+            <div className="w-full bg-blue-gray-50 rounded-md p-2">
+              <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    ผู้ตรวจสอบงาน (Reviewer)
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="Supamitr"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="rvw_name"
+                    value={values.rvw_name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    ประเภทงาน
+                  </Typography>
+                  <select
+                    className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border-[0.5px] border-blue-gray-200 rounded pl-3 pr-8 py-[11px] transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+                    name="type_id"
+                    value={values.type_id}
+                    onChange={(e) => setFieldValue("type_id", e.target.value)}
+                    error={Boolean(
+                      touched && touched.type_id && errors && errors.type_id
+                    )}
+                  >
+                    <option value="">ประเภทงาน</option>
+                    {jobTypeData.map(({ id, name }, index) => (
+                      <option key={index} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            </Form>
-          )}
-        </Formik>
-      </Card>
-    </div>
+              <Typography
+                variant="small"
+                color="blue-gray"
+                className="mb-2 font-medium flex items-center"
+              >
+                <InformationCircleIcon className="w-8 h-8" />
+                รายละเอียดงาน (Job Detail)
+              </Typography>
+              <div className="mb-6 flex flex-col items-end gap-4 md:flex-row">
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    หัวข้อชิ้นงาน
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="เช่น ออกแบบภาพ"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="name"
+                    value={values.name || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    กำหนดส่ง
+                  </Typography>
+                  <div className="flex gap-2">
+                    <Popover placement="bottom">
+                      <PopoverHandler>
+                        <Input
+                          placeholder=""
+                          size="lg"
+                          className=" rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          labelProps={{
+                            className: "before:content-none after:content-none",
+                          }}
+                          onChange={() => null}
+                          value={
+                            values.dateTime
+                              ? format(values.dateTime, "dd/MM/yyyy")
+                              : format(Date.now(), "dd/MM/yyyy")
+                          }
+                        />
+                      </PopoverHandler>
+                      <PopoverContent>
+                        <DayPicker
+                          mode="single"
+                          startMonth={Date.now()}
+                          selected={values.dateTime}
+                          onSelect={(date) => setFieldValue("dateTime", date)}
+                          showOutsideDays
+                          className="border-0"
+                          classNames={{
+                            caption:
+                              "flex justify-center py-2 mb-4 relative items-center",
+                            caption_label: "text-sm font-medium text-gray-900",
+                            nav: "flex items-center",
+                            nav_button:
+                              "h-6 w-6 bg-transparent hover:bg-blue-gray-50 p-1 rounded-md transition-colors duration-300",
+                            nav_button_previous: "absolute left-1.5",
+                            nav_button_next: "absolute right-1.5",
+                            table: "w-full border-collapse",
+                            head_row: "flex font-medium text-gray-900",
+                            head_cell: "m-0.5 w-9 font-normal text-sm",
+                            row: "flex w-full mt-2",
+                            cell: "text-gray-600 rounded-md h-9 w-9 text-center text-sm p-0 m-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gray-900/20 [&:has([aria-selected].day-outside)]:text-white [&:has([aria-selected])]:bg-gray-900/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-9 w-9 p-0 font-normal",
+                            day_range_end: "day-range-end",
+                            day_selected:
+                              "rounded-md bg-gray-900 text-white hover:bg-gray-900 hover:text-white focus:bg-gray-900 focus:text-white",
+                            day_today: "rounded-md bg-gray-200 text-gray-900",
+                            day_outside:
+                              "day-outside text-gray-500 opacity-50 aria-selected:bg-gray-500 aria-selected:text-gray-900 aria-selected:bg-opacity-10",
+                            day_disabled: "text-gray-500 opacity-50",
+                            day_hidden: "invisible",
+                          }}
+                          components={{
+                            IconLeft: ({ ...props }) => (
+                              <ChevronLeftIcon
+                                {...props}
+                                className="h-4 w-4 stroke-2"
+                              />
+                            ),
+                            IconRight: ({ ...props }) => (
+                              <ChevronRightIcon
+                                {...props}
+                                className="h-4 w-4 stroke-2"
+                              />
+                            ),
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Input
+                      type="time"
+                      size="lg"
+                      className="w-[120px] rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      labelProps={{
+                        className: "before:content-none after:content-none",
+                      }}
+                      name="jobTime"
+                      value={values.jobTime || ""}
+                      onChange={(e) => setFieldValue("jobTime", e.target.value)}
+                      onBlur={handleBlur}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="mb-3 flex flex-col items-end gap-4 md:flex-row">
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    วัตถุประสงค์ (ทำเพื่อ?)
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="เช่น กระตุ้นยอดขาย"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="objective"
+                    value={values.objective || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    กลุ่มเป้าหมาย (ไครดู?)
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="เช่น ลูกค้าใหม่"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="tarket"
+                    value={values.tarket || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+              </div>
+              <div className="mb-3 flex flex-col items-end gap-4 md:flex-row">
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    MODE & TONE
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="เช่น สนุกสนาน, ทางการ..."
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="mode_tone"
+                    value={values.mode_tone || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+                <div className="w-full">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="mb-2 font-medium"
+                  >
+                    KEY MESSAGE / FORMAT
+                  </Typography>
+                  <Input
+                    size="lg"
+                    placeholder="ข้อความหลัก / ขนาดภาพ"
+                    className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
+                    }}
+                    name="mes_format"
+                    value={values.mes_format || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </div>
+              </div>
+
+              <div className="w-full">
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="mb-2 font-medium"
+                >
+                  รายละเอียดเพิ่มเติม
+                </Typography>
+                <Textarea
+                  className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  labelProps={{
+                    className: "before:content-none after:content-none",
+                  }}
+                  name="detail"
+                  value={values.detail}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-4 md:flex-row mt-2">
+              <div className="w-full">
+                <div className="flex items-center justify-center w-full">
+                  <label
+                    htmlFor="dropzone-file"
+                    className="flex flex-col items-center justify-center w-full h-64 bg-blue-gray-50 border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium"
+                  >
+                    <div className="flex flex-col items-center justify-center text-body pt-5 pb-6">
+                      <svg
+                        className="w-8 h-8 mb-4"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm h">
+                        <span className="font-medium text-xl">
+                          แนบไฟล์ตัวอย่าง (Refference)
+                        </span>{" "}
+                      </p>
+
+                      <p className="text-ปส">(ขนาดไฟล์สูงสุด 35MB)</p>
+                    </div>
+
+                    <input
+                      // ref={fileInputRef}
+                      id="dropzone-file"
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => handleUpload(e.target.files[0])}
+                    />
+                  </label>
+                </div>
+                {fileShow && (
+                  <div className="py-4">
+                    <h3 className="text-center text-3xl text-black pb-4">
+                      ตัวอย่างไฟล์ {fileUse.name}
+                    </h3>
+                    <iframe
+                      src={fileShow}
+                      className="w-full h-[100vh]"
+                      title="PDF Preview"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="w-full flex justify-end gap-2">
+              <Button
+                disabled={loader}
+                onClick={() => navigate(-1)}
+                color="blue"
+                className="mt-6"
+              >
+                ย้อนกลับ
+              </Button>
+              <Button
+                disabled={loader}
+                type="submit"
+                className="mt-6 bg-[#44AA32]"
+              >
+                บันทึก
+              </Button>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </Card>
   );
 }
 

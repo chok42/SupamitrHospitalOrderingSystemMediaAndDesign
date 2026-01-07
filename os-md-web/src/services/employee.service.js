@@ -16,6 +16,21 @@ export const GetListEmployeeService = async () => {
   }
 };
 
+export const GetListEmployeeByRoleService = async (role_id) => {
+  try {
+    const body = JSON.stringify({ action: "getlistemployeebyrole",role_id });
+    const resp = await axios.post(employeeService.EMPLOYEE_URL, body);
+    let json = await resp.data;
+    if (json && json.success) {
+      return json.data;
+    }
+    return null;
+  } catch (error) {
+    console.log("Error fetching movie details:", error);
+    throw error;
+  }
+};
+
 export const GetByIdEmployeeService = async (id) => {
   try {
     const body = JSON.stringify({ action: "getbyid", id});

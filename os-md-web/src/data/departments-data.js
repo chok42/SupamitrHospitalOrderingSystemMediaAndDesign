@@ -1,16 +1,16 @@
-export const departmentsData = [
+export const dpmData = [
   {
-    id: "1",
+    id: "D001",
     name: "การขาย และการตลาด",
   },
     {
-    id: "2",
+    id: "D002",
     name: "สื่อและออกแบบ",
   },
     {
-    id: "3",
+    id: "D003",
     name: "Digital Marketing",
   },
 ];
 
-export default departmentsData;
+export default dpmData;

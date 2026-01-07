@@ -1,7 +1,7 @@
 export const positionData = [
   {
-    id: "1",
-    name: "Web Design",
+    id: "P001",
+    name: "เจ้าหน้าที่สื่อ",
   },
 ];
 

@@ -9,11 +9,12 @@ import {
 } from "@/widgets/layout";
 import routes from "@/routes";
 import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
+import { getStorage } from "@/helpers/contents";
 
 export function Dashboard() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavType } = controller;
-
+ const empRole = getStorage("empRole");
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
       <Sidenav
@@ -35,7 +36,7 @@ export function Dashboard() {
           <Cog6ToothIcon className="h-5 w-5" />
         </IconButton>
         <Routes>
-          {routes.map(
+          {routes.filter((ft)=> ft.token === true && ft.role === empRole).map(
             ({ layout, pages }) =>
               layout === "dashboard" &&
               pages.map(({ path, element, elements }) => {

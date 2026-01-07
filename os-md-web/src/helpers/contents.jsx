@@ -30,7 +30,7 @@ export const positionService = {
 // };
 
 export const removeAllStorage = async () => {
-  let keys = ["empId","empCode","empUsername"];
+  let keys = ["empId","empCode","empUsername","empRole"];
   keys.forEach((k) => localStorage.removeItem(k));
   return;
 };

@@ -17,6 +17,8 @@ const icon = {
 export const routes = [
   {
     layout: "dashboard",
+    role: "99",
+    token:true,
     pages: [
       {
         icon: <HomeIcon {...icon} />,
@@ -82,24 +84,119 @@ export const routes = [
       // },
     ],
   },
-  // {
-  //   title: "auth pages",
-  //   layout: "auth",
-  //   pages: [
-  //     {
-  //       icon: <ServerStackIcon {...icon} />,
-  //       name: "sign in",
-  //       path: "/sign-in",
-  //       element: <SignIn />,
-  //     },
-  //     {
-  //       icon: <RectangleStackIcon {...icon} />,
-  //       name: "sign up",
-  //       path: "/sign-up",
-  //       element: <SignUp />,
-  //     },
-  //   ],
-  // },
+    {
+    layout: "dashboard",
+    role: "1",
+    token:true,
+    pages: [
+      {
+        icon: <HomeIcon {...icon} />,
+        name: "dashboard",
+        path: "/home",
+        element: <Home />,
+      },
+      // {
+      //   icon: <UserCircleIcon {...icon} />,
+      //   name: "profile",
+      //   path: "/profile",
+      //   element: <Profile />,
+      // },
+      {
+        icon: <TableCellsIcon {...icon} />,
+        name: "แจ้งงานสื่อ",
+        path: "/job",
+        element: <JobTable />,
+        elements: [
+          {
+            icon2: <UserIcon {...icon} />,
+            name2: "job insert",
+            path2: "/job/insert",
+            element2: <JobInsert />,
+            show2: false,
+          },
+          {
+            icon2: <UserIcon {...icon} />,
+            name2: "job insert",
+            path2: "/job/update",
+            element2: <JobUpdate />,
+            show2: false,
+          },
+        ],
+      },
+      // {
+      //   icon: <InformationCircleIcon {...icon} />,
+      //   name: "แจ้งงานใหม่",
+      //   path: "/notifications",
+      //   element: <Notifications />,
+      // },
+    ],
+  },
+   {
+    layout: "dashboard",
+    role: "2",
+    token:true,
+    pages: [
+      {
+        icon: <HomeIcon {...icon} />,
+        name: "dashboard",
+        path: "/home",
+        element: <Home />,
+      },
+      // {
+      //   icon: <UserCircleIcon {...icon} />,
+      //   name: "profile",
+      //   path: "/profile",
+      //   element: <Profile />,
+      // },
+      {
+        icon: <TableCellsIcon {...icon} />,
+        name: "แจ้งงานสื่อ",
+        path: "/job",
+        element: <JobTable />,
+        elements: [
+          {
+            icon2: <UserIcon {...icon} />,
+            name2: "job insert",
+            path2: "/job/insert",
+            element2: <JobInsert />,
+            show2: false,
+          },
+          {
+            icon2: <UserIcon {...icon} />,
+            name2: "job insert",
+            path2: "/job/update",
+            element2: <JobUpdate />,
+            show2: false,
+          },
+        ],
+      },
+      // {
+      //   icon: <InformationCircleIcon {...icon} />,
+      //   name: "แจ้งงานใหม่",
+      //   path: "/notifications",
+      //   element: <Notifications />,
+      // },
+    ],
+  },
+  {
+    title: "auth pages",
+    token:false,
+    layout: "auth",
+    pages: [
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "sign in",
+        path: "/sign-in",
+        element: <SignIn />,
+      },
+      // {
+      //   icon: <RectangleStackIcon {...icon} />,
+      //   name: "sign up",
+      //   path: "/sign-up",
+      //   element: <SignUp />,
+      // },
+    ],
+  },
 ];
 
 export default routes;

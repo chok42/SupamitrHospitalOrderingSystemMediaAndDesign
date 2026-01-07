@@ -1,10 +1,10 @@
 export const jobTypeData = [
   {
-    id: "1",
+    id: "J01",
     name: "Graphics",
   },
   {
-    id: "2",
+    id: "J02",
     name: "Infographic",
   },
 ];

@@ -13,19 +13,25 @@ import { useContext, useState } from "react";
 export function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const {loader,setLoader} = useContext(MyContext)
+  const [req, setReq] = useState(false)
 
   const onSubmitLogin = async ({ username, password }) => {
     setLoader(true);
     const resp = await LoginEmployeeService({ username, password });
+    setLoader(false);
     if (resp) {
       setStorage("empId", resp.id);
       setStorage("empCode", resp.code);
       setStorage("empUsername", resp.username);
+      setStorage("empRole", resp.role_id);
       setLoader(false);
       window.location.reload();
       return;
+    }else{
+      setReq(true)
     }
   };
+
   return (
     <section className="m-8 flex gap-4 h-full justify-center items-center">
       <div className="w-full lg:w-3/5 mt-24">
@@ -108,6 +114,13 @@ export function SignIn() {
                   onBlur={handleBlur}
                 />
               </div>
+                       {req && <Typography
+                    variant="small"
+                    color="red"
+                    className="flex items-center justify-start font-medium"
+                  >
+                    ชื่อผู้ใช้ หรือรหัสผ่านที่คุณป้อนไม่ถูกต้อง
+                  </Typography>}
               {/* <Checkbox
                 label={
                   <Typography
@@ -125,9 +138,9 @@ export function SignIn() {
                   </Typography>
                 }
                 containerProps={{ className: "-ml-2.5" }}
-              /> */}
-              <Button disabled={loader} type="submit" className="mt-6" fullWidth>เข้าสู่ระบบ</Button>
-
+              />
+               */}
+<Button disabled={loader} type="submit" className="mt-6" fullWidth>เข้าสู่ระบบ</Button>
               {/* <div className="flex items-center justify-between gap-2 mt-6">
                 <Checkbox
                   label={
