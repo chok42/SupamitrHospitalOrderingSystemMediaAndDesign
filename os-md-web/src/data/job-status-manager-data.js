@@ -14,10 +14,11 @@ export const jobStaManager = [
   },
   {
     id: "2",
-    js_id: "S01",
+    js_id: "S06",
     status_id: "S01",
     name: "ไม่รับงาน",
-    color: "yellow",
+    color: "orange",
+
   },
   {
     id: "3",

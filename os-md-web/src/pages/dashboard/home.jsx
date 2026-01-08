@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   Typography,
   Card,
@@ -26,10 +26,22 @@ import {
   ordersOverviewData,
 } from "@/data";
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { ReportDepatrmentListService } from "@/services/job.service";
+import MyContext from "@/context/MyContext";
 
 export function Home() {
+  const { setLoader } = useContext(MyContext);
+  const [dpms, setDpms] = useState([]);
+  useMemo(async () => {
+    setLoader(true)
+    const resp = await ReportDepatrmentListService();
+    setLoader(false)
+    if (resp) {
+      setDpms(resp);
+    }
+  }, []);
   return (
-    <div className="mt-12">
+    <div className="mt-12 min-h-[75vh]">
             <div className="mb-4 grid grid-cols-1 gap-6 ">
         <Card className="overflow-hidden xl:col-span-2 border border-blue-gray-100 shadow-sm">
           <CardHeader
@@ -89,25 +101,25 @@ export function Home() {
                 </tr>
               </thead>
               <tbody>
-                {projectsTableData.map(
-                  ({ img, name, members, budget, completion }, key) => {
+                {dpms.map(
+                  ({ department_Id, department_Name,total }, index) => {
                     const className = `py-3 px-5 ${
-                      key === projectsTableData.length - 1
+                      index === projectsTableData.length - 1
                         ? ""
                         : "border-b border-blue-gray-50"
                     }`;
 
                     return (
-                      <tr key={name}>
+                      <tr key={index}>
                         <td className={className}>
                           <div className="flex items-center gap-4">
-                            <Avatar src={img} alt={name} size="sm" />
+                            {/* <Avatar src={img} alt={name} size="sm" /> */}
                             <Typography
                               variant="small"
                               color="blue-gray"
                               className="font-bold"
                             >
-                              {name}
+                              {department_Name}
                             </Typography>
                           </div>
                         </td>
@@ -117,12 +129,12 @@ export function Home() {
                               variant="small"
                               className="mb-1 block text-xs font-medium text-blue-gray-600"
                             >
-                              {completion}
+                              {total}
                             </Typography>
                             <Progress
-                              value={completion}
+                              value={total}
                               variant="gradient"
-                              color={completion === 100 ? "green" : "blue"}
+                              color={total === 100 ? "green" : "blue"}
                               
                               className="h-1"
                             />

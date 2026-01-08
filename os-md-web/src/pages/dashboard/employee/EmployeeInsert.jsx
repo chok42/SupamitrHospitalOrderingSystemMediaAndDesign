@@ -177,16 +177,17 @@ export function EmployeeInsert() {
                       label="ชื่อจริง"
                       variant="outlined"
                       size="lg"
-                      error={Boolean(
+                 
+                      name="firstname"
+                      value={values.firstname}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                           error={Boolean(
                         touched &&
                           touched.firstname &&
                           errors &&
                           errors.firstname
                       )}
-                      name="firstname"
-                      value={values.firstname}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
                     />
                     {touched &&
                       touched.firstname &&

@@ -2,15 +2,12 @@ import {
   Card,
   CardBody,
   Typography,
-  Avatar,
   Button,
   CardHeader,
   IconButton,
   Dialog,
-  DialogHeader,
   DialogBody,
   DialogFooter,
-  Input,
   Textarea,
   Chip,
 } from "@material-tailwind/react";
@@ -24,44 +21,58 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowPathIcon,
+  LinkIcon,
   PencilIcon,
-  PlusIcon,
   TrashIcon,
-  TvIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import MyContext from "@/context/MyContext";
 import Swal from "sweetalert2";
 import { PrivateRoute } from "@/guard/PrivateRoute";
-import { toThaiDateString, toThaiDateTimeString } from "@/helpers/format";
+import { toThaiDateTimeString } from "@/helpers/format";
 import { dpmData, jobStaEmp, jobStaManager, jsData } from "@/data";
 import { JobHsitoryTimeline } from "./sections/JobHsitoryTimeline";
 import { Form, Formik } from "formik";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { OSPagination } from "@/components/OSPagination";
 
 export function JobTable() {
   const navigate = useNavigate();
   const { dataEmp, setLoader } = useContext(MyContext);
-  const [jobs, setJobs] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [jobs, setJobs] = useState({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 1,
+    data: [],
+  });
   const [open, setOpen] = useState(false);
   const [itemJob, setItemJob] = useState();
   const [jobHistory, setJobHistory] = useState([]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [page, pageSize,dataEmp]);
+
 
   const fetchData = async () => {
     setLoader(true);
-    const res = await GetListJobService();
-    setLoader(false);
-    if (res) {
-      setJobs(res);
-    } else {
-      setJobs([]);
+    if (dataEmp && dataEmp.dpm_id) {
+      const res = await GetListJobService(page, pageSize, dataEmp.dpm_id);
+      if (res) {
+        setJobs(res);
+      } else {
+        setJobs({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
+      }
+      setLoader(false);
     }
   };
+
+
 
   const fetchDataHistory = async (id) => {
     setLoader(true);
@@ -76,13 +87,33 @@ export function JobTable() {
 
   const handleOpen = async (data) => {
     setItemJob(data);
-    await fetchDataHistory(data.id);
+    await fetchDataHistory(data.job_Id);
     setOpen(true);
   };
+
   const handleClose = () => {
     setItemJob(null);
     setOpen(false);
   };
+
+  const onPageChange = async ({ selected }) => {
+    setPage(selected + 1);
+  };
+
+  const handleChangePageSize = async (number) => {
+    setPageSize(number);
+  };
+
+  
+  const convertDriveIFrame = (url) => {
+
+    if (url) {
+      const fileId = url.match(/[-\w]{25,}/)[0];
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return ""; // or handle invalid format
+  };
+
   const deleteJob = async (id) => {
     await Swal.fire({
       title: "คุณแน่ใจเหรอ?",
@@ -133,32 +164,37 @@ export function JobTable() {
 
   return (
     <>
-      <div className="mt-12 mb-8 flex flex-col gap-12">
+      <div className="mt-12 mb-8 flex flex-col gap-12 min-h-[70vh]">
         <Card>
           <CardHeader
             variant="gradient"
             className="mb-8 p-6 flex justify-between items-center bg-[#FFFFFF]"
           >
             <Typography variant="h6" className="text-[#0057A1]">
-              ตารางแจ้งงาน
+              ข้อมูลการแจ้งงาน
             </Typography>
 
-            <PrivateRoute
-              role={(dataEmp && dataEmp.role_id) || ""}
-              roles={["99", "2"]}
-            >
-              <Button
-                onClick={() => navigate("insert")}
-                className="flex justify-center items-center bg-[#0057A1]"
+            <div className="flex justify-center items-center gap-4">
+              <PrivateRoute
+                role={(dataEmp && dataEmp.role_id) || ""}
+                roles={["99", "2"]}
               >
-                <Typography
-                  variant="h3"
-                  className="text- text-sm text-[#FFFFFF]"
+                <Button
+                  onClick={() => navigate("insert")}
+                  className="flex justify-center items-center bg-[#0057A1]"
                 >
-                  แจ้งงานใหม่
-                </Typography>
-              </Button>
-            </PrivateRoute>
+                  <Typography
+                    variant="h3"
+                    className="text- text-sm text-[#FFFFFF]"
+                  >
+                    แจ้งงานใหม่
+                  </Typography>
+                </Button>
+              </PrivateRoute>
+              <IconButton color="green" onClick={async () => await fetchData()}>
+                <ArrowPathIcon className="w-5 h-5" />
+              </IconButton>
+            </div>
           </CardHeader>
           <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
             <PrivateRoute
@@ -166,58 +202,72 @@ export function JobTable() {
               roles={["1", "2"]}
             >
               <div className="flex flex-col gap-4 p-2">
-                {jobs &&
-                  jobs.length > 0 &&
-                  jobs.map((iJob, index) => (
-                    <Card
-                      key={index}
-                      onClick={() => {
-                        if (iJob.status_id === "1" || "2" || "3" || "4") {
-                          handleOpen(iJob);
-                        }
-                      }}
-                    >
-                      <CardBody className="flex flex-row justify-between items-center">
-                        <div className="flex flex-row justify-start items-center gap-2">
-                          <div>{/* <Avatar alt="5" /> */}</div>
-                          <div className="flex flex-col">
-                            <Typography variant="h6" color="black">
-                              {iJob.name}
-                            </Typography>
-                            {iJob.dpm_id && (
+                {jobs.data && jobs.data.length > 0 ? (
+                  <>
+                    {jobs.data.map((iJob, index) => (
+                      <Card
+                        key={index}
+                        onClick={async () => await handleOpen(iJob)}
+                      >
+                        <CardBody className="grid grid-cols-2">
+                          <div className="flex flex-row justify-start items-center gap-2">
+                            <div>{/* <Avatar alt="5" /> */}</div>
+                            <div className="flex flex-col">
                               <Typography variant="h6" color="black">
-                                {`${iJob.code || ""} ${
-                                  dpmData.find(
-                                    (fd) => fd.id === iJob.dpm_id.toString()
-                                  )?.name || ""
-                                } `}
+                                {iJob.job_Code}
                               </Typography>
-                            )}
-                            <Typography variant="h6" color="black">
-                              {toThaiDateTimeString(iJob.dateTime)}
-                            </Typography>
+                              <Typography variant="h6" color="gray">
+                                {`หัวข้อ: ${iJob.job_Name}`}
+                              </Typography>
+                              {iJob.department_Id && (
+                                <Typography variant="h6" color="gray">
+                                  {`แผนก: ${iJob.code || ""} ${
+                                    dpmData.find(
+                                      (fd) =>
+                                        fd.id === iJob.department_Id.toString()
+                                    )?.name || ""
+                                  } `}
+                                </Typography>
+                              )}
+                              <Typography variant="h6" color="gray">
+                                {toThaiDateTimeString(iJob.job_DateTime)}
+                              </Typography>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col">
-                          {iJob.status_id &&
-                            jsData.map((ijs, index) => {
-                              if (ijs.id === iJob.status_id) {
-                                return (
-                                  <Chip
-                                    key={index}
-                                    value={ijs.name}
-                                    color={ijs.color}
-                                  />
-                                );
-                              }
-                            })}
-                        </div>
-                      </CardBody>
-                    </Card>
-                  ))}
+                          <div className="flex justify-end items-center">
+                            {iJob.jobStatus_Id &&
+                              jsData.map((ijs, index) => {
+                                if (ijs.id === iJob.jobStatus_Id) {
+                                  return (
+                                    <Chip
+                                      key={index}
+                                      value={ijs.name}
+                                      color={ijs.color}
+                                      className="w-fit h-fit"
+                                    />
+                                  );
+                                }
+                              })}
+                          </div>
+                        </CardBody>
+                      </Card>
+                    ))}
+                    <div>
+                      <OSPagination
+                        total={jobs.total}
+                        pageCount={jobs.totalPages}
+                        page={page}
+                        pageSize={pageSize}
+                        onPageChange={onPageChange}
+                        handleChangePageSize={handleChangePageSize}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <></>
+                )}
               </div>
             </PrivateRoute>
-
             <PrivateRoute
               role={(dataEmp && dataEmp.role_id) || ""}
               roles={["99"]}
@@ -253,7 +303,14 @@ export function JobTable() {
                     jobs.length > 0 &&
                     jobs.map(
                       (
-                        { id, code, name, emp_name, rvw_name, creationDate },
+                        {
+                          job_Id,
+                          job_Code,
+                          job_Name,
+                          employee_FirstName,
+                          reviewer_FirstName,
+                          job_CreationDate,
+                        },
                         index
                       ) => {
                         const className = `py-3 px-5 ${
@@ -272,16 +329,16 @@ export function JobTable() {
                                   color="blue-gray"
                                   className="font-bold"
                                 >
-                                  {code}
+                                  {job_Code}
                                 </Typography>
                               </div>
                             </td>
                             <td className={className}>
                               <Typography
                                 variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
+                                className="text-xs font-medium text-blue-gray-400"
                               >
-                                {name}
+                                {job_Name}
                               </Typography>
                             </td>
                             <td className={className}>
@@ -289,7 +346,7 @@ export function JobTable() {
                                 variant="small"
                                 className="text-xs font-medium text-blue-gray-600"
                               >
-                                {emp_name}
+                                {employee_FirstName}
                               </Typography>
                             </td>
                             <td className={className}>
@@ -297,7 +354,7 @@ export function JobTable() {
                                 variant="small"
                                 className="text-xs font-medium text-blue-gray-600"
                               >
-                                {emp_name}
+                                {reviewer_FirstName}
                               </Typography>
                             </td>
                             <td className={className}>
@@ -305,7 +362,7 @@ export function JobTable() {
                                 variant="small"
                                 className="text-xs font-medium text-blue-gray-600"
                               >
-                                {rvw_name}
+                                {reviewer_FirstName}
                               </Typography>
                             </td>
                             <td className={className}>
@@ -313,7 +370,7 @@ export function JobTable() {
                                 variant="small"
                                 className="text-xs font-medium text-blue-gray-600"
                               >
-                                {creationDate}
+                                {job_CreationDate}
                               </Typography>
                             </td>
 
@@ -322,13 +379,13 @@ export function JobTable() {
                                 <IconButton
                                   className="bg-yellow-700"
                                   onClick={() =>
-                                    navigate("update", { state: id })
+                                    navigate("update", { state: job_Id })
                                   }
                                 >
                                   <PencilIcon className="w-5 text-white" />
                                 </IconButton>
                                 <IconButton
-                                  onClick={async () => await deleteJob(id)}
+                                  onClick={async () => await deleteJob(job_Id)}
                                   className="bg-red-700"
                                 >
                                   <TrashIcon className="w-5 text-white" />
@@ -348,27 +405,28 @@ export function JobTable() {
       <Dialog open={open} handler={handleClose} size="xl">
         <Formik
           initialValues={{
-            id: itemJob ? itemJob.id ?? "" : "",
-            name: itemJob ? itemJob.name ?? "" : "",
-            detail: itemJob ? itemJob.detail ?? "" : "",
+            id: itemJob ? itemJob.job_Id ?? "" : "",
+            name: itemJob ? itemJob.job_Name ?? "" : "",
+            detail: itemJob ? itemJob.job_Detail ?? "" : "",
             dateTime: itemJob
-              ? format(itemJob.dateTime, "yyyy-MM-dd HH:mm", { locale: th }) ??
-                ""
+              ? format(itemJob.job_DateTime, "yyyy-MM-dd HH:mm", {
+                  locale: th,
+                }) ?? ""
               : "",
             countUpdate: "",
-            tarket: itemJob ? itemJob.tarket ?? "" : "",
-            objective: itemJob ? itemJob.objective ?? "" : "",
-            mode_tone: itemJob ? itemJob.mode_tone ?? "" : "",
-            mes_format: itemJob ? itemJob.mes_format ?? "" : "",
-            file: itemJob ? itemJob.file ?? "" : "",
-            type_id: itemJob ? itemJob.type_id ?? "" : "",
-            status_id: itemJob ? itemJob.status_id ?? "" : "",
-            rec_id: itemJob ? itemJob.rec_id ?? "" : "",
-            rvw_name: "",
-            emp_id: dataEmp ? dataEmp.id ?? "" : "",
-            emp_name: dataEmp ? dataEmp.firstname : "",
-            dpm_id: itemJob ? itemJob.dpm_id ?? "" : "",
-            pst_id: itemJob ? itemJob.pst_id ?? "" : "",
+            target: itemJob ? itemJob.job_Target ?? "" : "",
+            objective: itemJob ? itemJob.job_Objective ?? "" : "",
+            mode_tone: itemJob ? itemJob.job_mt ?? "" : "",
+            mes_format: itemJob ? itemJob.job_mf ?? "" : "",
+            file: itemJob ? itemJob.job_file ?? "" : "",
+            type_id: itemJob ? itemJob.jobType_Id ?? "" : "",
+            status_id: itemJob ? itemJob.jobStatus_Id ?? "" : "",
+            rec_id: itemJob ? itemJob.recipient_Id ?? "" : "",
+            rvw_name: dataEmp ? dataEmp.reviewer_FirstName : "",
+            emp_id: dataEmp ? dataEmp.employee_Id ?? "" : "",
+            emp_name: dataEmp ? dataEmp.employee_FirstName : "",
+            dpm_id: itemJob ? itemJob.department_Id ?? "" : "",
+            pst_id: itemJob ? itemJob.position_Id ?? "" : "",
             history: "",
           }}
         >
@@ -389,7 +447,7 @@ export function JobTable() {
               <DialogBody className="max-h-[70vh] overflow-scroll">
                 <div className="w-full grid grid-cols-2">
                   <div className="w-full">
-                    <div className="grid grid-cols-2 bg-gray-100 p-2 rounded-md gap-2">
+                    <div className="grid grid-cols-2 bg-[#FAFAFA] p-2 rounded-md gap-2">
                       <div className="w-full">
                         <div>
                           <Typography className="text-[16px] font-normal text-blue-gray-700">
@@ -424,7 +482,7 @@ export function JobTable() {
                             กำหนดส่ง
                           </Typography>
                           <Typography className="text-[16px] font-normal text-black">
-                            {toThaiDateString(values.dateTime)}
+                            {toThaiDateTimeString(values.dateTime)}
                           </Typography>
                         </div>
                       </div>
@@ -432,7 +490,7 @@ export function JobTable() {
                     <Typography className="text-[16px] font-bold my-4 text-black">
                       รายละเอียด (ฺBRIEF)
                     </Typography>
-                    <div className="bg-gray-100">
+                    <div className="bg-[#FAFAFA] pb-4">
                       <div className="grid grid-cols-2  p-2 rounded-md gap-2">
                         <div className="w-full flex flex-col gap-2">
                           <div className="border-[1px] border-gray-400 rounded-md p-2 bg-white">
@@ -450,7 +508,7 @@ export function JobTable() {
                               กลุ่มเป้าหมาย
                             </Typography>
                             <Typography className="text-[16px] font-normal text-black">
-                              {values.tarket || ""}
+                              {values.target || ""}
                             </Typography>
                           </div>
                         </div>
@@ -488,6 +546,22 @@ export function JobTable() {
                           </Typography>
                         </div>
                       </div>
+                      {values.file && (
+                        <div className="flex justify-end ">
+                          <div className="flex gap-2">
+                            <a
+                              className="w-fit text-green-500"
+                              href={values.file}
+                              download="proposed_file_name"
+                              target="_blank"
+                            >
+                              <IconButton color="green">
+                                <LinkIcon className="w-5" />
+                              </IconButton>
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="w-full px-6">
@@ -496,21 +570,27 @@ export function JobTable() {
                     </Typography>
                     <div className="py-4 flex flex-col justify-between">
                       <JobHsitoryTimeline itemHistory={jobHistory} />
-                      <div className="w-full max-h-[20vh] pt-4">
-                        <Typography className="text-[16px] font-normal text-blue-gray-700">
-                          ข้อความ
-                        </Typography>
-                        <Textarea
-                          className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          labelProps={{
-                            className: "before:content-none after:content-none",
-                          }}
-                          name="history"
-                          value={values.history}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                        />
-                      </div>
+                      <PrivateRoute
+                        role={values.status_id}
+                        roles={["S01", "S02", "S03"]}
+                      >
+                        <div className="w-full max-h-[20vh] pt-4">
+                          <Typography className="text-[16px] font-normal text-blue-gray-700">
+                            ข้อความ
+                          </Typography>
+                          <Textarea
+                            className="rounded-md focus:border-[0.5px] appearance-none  !border-t-blue-gray-200 placeholder:text-blue-gray-300 placeholder:opacity-100 focus:!border-t-gray-900 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            labelProps={{
+                              className:
+                                "before:content-none after:content-none",
+                            }}
+                            name="history"
+                            value={values.history}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                          />
+                        </div>
+                      </PrivateRoute>
                     </div>
                   </div>
                 </div>
@@ -540,25 +620,6 @@ export function JobTable() {
                     ))}
                 </PrivateRoute>
                 <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["2"]}>
-                  {jobStaEmp.map((item, index) => (
-                    <Button
-                      key={index}
-                      type="button"
-                      variant="gradient"
-                      color={item.color ? item.color : "gray"}
-                      onClick={async () => {
-                        await updateJobStatus(
-                          values.id,
-                          item.js_id,
-                          item.name,
-                          ""
-                        );
-                      }}
-                    >
-                      <span>{item.name}</span>
-                    </Button>
-                  ))}
-
                   {values.status_id === "S01" && (
                     <Button
                       type="button"
@@ -569,6 +630,24 @@ export function JobTable() {
                       <span>แก้ไขข้อมูล</span>
                     </Button>
                   )}
+                  {jobStaEmp.filter((ft)=> ft.js_id !== "S05").map((item, index) => (
+                    <Button
+                      key={index}
+                      type="button"
+                      variant="gradient"
+                      color={item.color ? item.color : "gray"}
+                      onClick={async () => {
+                        await updateJobStatus(
+                          values.id,
+                          item.js_id,
+                          item.name,
+                          values.history
+                        );
+                      }}
+                    >
+                      <span>{item.name}</span>
+                    </Button>
+                  ))}
                 </PrivateRoute>
               </DialogFooter>
             </Form>

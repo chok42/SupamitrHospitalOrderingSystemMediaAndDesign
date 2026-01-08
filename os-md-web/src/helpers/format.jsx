@@ -12,7 +12,19 @@ export const toThaiDateTimeString = (date) => {
     hour:"numeric",
     minute:'numeric',
     second:"numeric",
-    timeZone: "UTC",
+    timeZone: "Asia/Bangkok",
+    formatMatcher:'basic',
+  })
+ return datetoThai
+};
+
+export const toThaiTimeString = (date) => {
+  const dataDate = new Date(date)
+  const datetoThai = dataDate.toLocaleDateString('th-TH', {
+    hour:"numeric",
+    minute:'numeric',
+    second:"numeric",
+    timeZone: "Asia/Bangkok",
     formatMatcher:'basic',
   })
  return datetoThai
@@ -28,6 +40,28 @@ export const toThaiDateString = (date) => {
   })
  return datetoThai
 };
+//------------------------------------
+//GoogleDrive
+//------------------------------------
+  const convertDriveImage = (url) => {
+    //ConvertDriveLinkToDirectImage
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)\//);
+    if (match && match[1]) {
+      const fileId = match[1];
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return ""; // or handle invalid format
+  };
+
+  const convertDriveIFrame = (url) => {
+    //ConvertDriveLinkToDirectImage
+
+    if (url) {
+      const fileId = url.match(/[-\w]{25,}/)[0];
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return ""; // or handle invalid format
+  };
 //-----------------------------------------------------------------------------------------
 //number
 //-----------------------------------------------------------------------------------------

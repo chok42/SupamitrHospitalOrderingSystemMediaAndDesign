@@ -2,18 +2,15 @@ import MyContext from "@/context/MyContext";
 import { setStorage } from "@/helpers/contents";
 import { LoginEmployeeService } from "@/services/employee.service";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
-import {
-  Input,
-  Button,
-  Typography,
-} from "@material-tailwind/react";
+import { Input, Button, Typography } from "@material-tailwind/react";
 import { Form, Formik } from "formik";
 import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 
 export function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const {loader,setLoader} = useContext(MyContext)
-  const [req, setReq] = useState(false)
+  const { loader, setLoader } = useContext(MyContext);
+  const [req, setReq] = useState(false);
 
   const onSubmitLogin = async ({ username, password }) => {
     setLoader(true);
@@ -27,8 +24,8 @@ export function SignIn() {
       setLoader(false);
       window.location.reload();
       return;
-    }else{
-      setReq(true)
+    } else {
+      setReq(true);
     }
   };
 
@@ -40,9 +37,9 @@ export function SignIn() {
             เข้าสู่ระบบ
           </Typography>
           <Typography
-            variant="paragraph"
+            // variant="paragraph"
             color="blue-gray"
-            className="text-lg font-normal"
+            className=" font-normal text-[20px]"
           >
             ระบบสั่งงาน สื่อและออกแบบ
           </Typography>
@@ -114,13 +111,15 @@ export function SignIn() {
                   onBlur={handleBlur}
                 />
               </div>
-                       {req && <Typography
-                    variant="small"
-                    color="red"
-                    className="flex items-center justify-start font-medium"
-                  >
-                    ชื่อผู้ใช้ หรือรหัสผ่านที่คุณป้อนไม่ถูกต้อง
-                  </Typography>}
+              {req && (
+                <Typography
+                  variant="small"
+                  color="red"
+                  className="flex items-center justify-start font-medium"
+                >
+                  ชื่อผู้ใช้ หรือรหัสผ่านที่คุณป้อนไม่ถูกต้อง
+                </Typography>
+              )}
               {/* <Checkbox
                 label={
                   <Typography
@@ -140,7 +139,14 @@ export function SignIn() {
                 containerProps={{ className: "-ml-2.5" }}
               />
                */}
-<Button disabled={loader} type="submit" className="mt-6" fullWidth>เข้าสู่ระบบ</Button>
+              <Button
+                disabled={loader}
+                type="submit"
+                className="mt-6"
+                fullWidth
+              >
+                เข้าสู่ระบบ
+              </Button>
               {/* <div className="flex items-center justify-between gap-2 mt-6">
                 <Checkbox
                   label={
@@ -221,15 +227,15 @@ export function SignIn() {
                   <span>Sign in With Twitter</span>
                 </Button>
               </div> */}
-              {/* <Typography
+              <Typography
                 variant="paragraph"
                 className="text-center text-blue-gray-500 font-medium mt-4"
               >
-                Not registered?
+                ไม่ได้ลงทะเบียน?
                 <Link to="/auth/sign-up" className="text-gray-900 ml-1">
-                  Create account
+                  สมัครเข้าใช้งาน
                 </Link>
-              </Typography> */}
+              </Typography>
             </Form>
           )}
         </Formik>

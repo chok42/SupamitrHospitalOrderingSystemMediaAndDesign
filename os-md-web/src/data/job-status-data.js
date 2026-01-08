@@ -25,6 +25,12 @@ export const jsData = [
     name: "ยกเลิกงาน",
     color: "red",
   },
+  ,
+  {
+    id: "S06",
+    name: "ไม่รับงาน",
+    color: "orange",
+  },
 ];
 
 export default jsData;

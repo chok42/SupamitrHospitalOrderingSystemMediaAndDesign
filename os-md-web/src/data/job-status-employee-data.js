@@ -7,7 +7,7 @@ export const jobStaEmp = [
   {
     id: "1",
     js_id: "S05",
-    name: "ยกเลิกแจ้งงาน",
+    name: "ยกเลิกงาน",
     color: "red",
   }
 
