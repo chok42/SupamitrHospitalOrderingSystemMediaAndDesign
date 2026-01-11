@@ -1,15 +1,14 @@
-import { useContext, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Form, Formik } from "formik";
 import * as Yup from "yup";
+import { ChevronLeftIcon, ChevronRightIcon, InformationCircleIcon, LinkIcon } from "@heroicons/react/24/solid";
+import { Card, Input, Button, Typography, Popover, PopoverHandler, PopoverContent, Textarea, IconButton } from "@material-tailwind/react";
 //context
 import MyContext from "@/context/MyContext";
 //service
 
-import { GetListEmployeeByRoleService } from "@/services/employee.service";
 import { GetByIdJobService, UpdateJobService } from "@/services/job.service";
-import { ChevronLeftIcon, ChevronRightIcon, InformationCircleIcon, LinkIcon } from "@heroicons/react/24/solid";
-import { Card, Input, Button, Typography, Popover, PopoverHandler, PopoverContent, Textarea, IconButton } from "@material-tailwind/react";
 
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -40,7 +39,11 @@ export function JobUpdate() {
   const { dataEmp, loader, setLoader } = useContext(MyContext);
   const [job, setJob] = useState();
 
-  useMemo(async () => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
     setLoader(true);
     if (locatoin.state) {
       const resJob = await GetByIdJobService(locatoin.state);
@@ -48,10 +51,11 @@ export function JobUpdate() {
         setJob(resJob);
       }
     }
+    setLoader(false);
+  };
 
-  }, []);
-
-
+  
+  
 
   const onSubmitJob = async (value) => {
     setLoader(true);

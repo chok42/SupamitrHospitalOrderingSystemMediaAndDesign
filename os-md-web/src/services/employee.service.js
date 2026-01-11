@@ -96,6 +96,22 @@ export const UpdateEmployeeService = async (formData) => {
   }
 };
 
+export const UpdateEmployeeStatusService = async (val) => {
+  try {
+    const body = JSON.stringify({ action: "update_statusbyid",...val});
+    const resp = await axios.post(employeeService.EMPLOYEE_URL, body);
+    let json = await resp.data;
+    if (json) {
+      return json
+    }
+    return null;
+  } catch (error) {
+    console.log("Error fetching movie details:", error);
+    throw error;
+  }
+};
+
+
 export const DeleteEmployeeService = async (id) => {
   try {
     const body = JSON.stringify({ action: "delete", id});

@@ -1,139 +1,307 @@
+
 import {
   Card,
   Input,
-  Checkbox,
   Button,
   Typography,
 } from "@material-tailwind/react";
+import { Form, Formik } from "formik";
 import { Link } from "react-router-dom";
+import * as Yup from "yup";
+//data
+import { dpmData } from "@/data";
+//helpers
+import { inputLengthEnglish } from "@/helpers/format";
+import { InsertEmployeeService } from "@/services/employee.service";
+import Swal from "sweetalert2";
+import { useContext } from "react";
+import MyContext from "@/context/MyContext";
+
+
+const signUpSchema = Yup.object().shape({
+  username: Yup.string()
+  .min(5, "ชื่อผู้ใช้ต้องมีความยาวมากกว่า 4 ตัวอักษร")
+  .max(50,"ชื่อผู้ใช้ต้องมีความยาวไม่เกิน 50 ตัวอักษร")
+  .matches(/[0-9]/, "ชื่อผู้ใช้ต้องมีตัวเลข")
+  .matches(/[a-zA-Z]/, "โปรดระบุชื่อผู้ใช้เป็นภาษาอังกฤษ")
+  .required("กรุณาระบุชื่อผู้ใช้"),
+  firstname: Yup.string().required("กรุณาระบุชื่อจริง"),
+  lastname: Yup.string().required("กรุณาระบุนามสกุล"),
+  dpm_id: Yup.string().required("กรุณาเลือกแผนก"),
+  password: Yup.string()
+    .required("กรุณาระบุรหัสผ่าน")
+    .min(8, "รหัสผ่านต้องมีความยาว 8 ตัวอักษร")
+    .max(30, "รหัสผ่านต้องมีความยาวไม่เกิน 30 ตัวอักษร")
+    .matches(/[0-9]/, "รหัสผ่านต้องมีตัวเลข")
+    .matches(/[a-z]/, "รหัสผ่านต้องมีตัวพิมพ์เล็ก")
+    .matches(/[A-Z]/, "รหัสผ่านต้องขึ้นต้นด้วยตัวพิมพ์ใหญ่")
+    .matches(/[^\w]/, "รหัสผ่านต้องมีสัญลักษณ์"),
+  confirm: Yup.string()
+  .required("กรุณาระบุยืนยันรหัสผ่าน")
+  .oneOf(
+    [Yup.ref("password"), null],
+    '"รหัสผ่าน" ต้องมีค่าตรงกัน'
+  ),
+});
 
 export function SignUp() {
+  const { setLoader } = useContext(MyContext);
+
+  const onSubmitSignUp = async (val, resetForm) => {
+    console.log('val',val);
+    
+    setLoader(true);
+    const resp = await InsertEmployeeService(val);
+    setLoader(false);
+    if (resp && resp.success) {
+      console.log("msg:", resp.message);
+      resetForm();
+      Swal.fire({
+        title: "สมัครสมาชิกสำเร็จ",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } else if (resp && resp.success === false && resp.status === "409") {
+      console.log("msg:", resp.message);
+    } else if (resp && resp.success === false && resp.status === "500") {
+      console.log("msg:", resp.message);
+    }
+  };
   return (
     <section className="m-8 flex">
-      <div className="w-2/5 h-full hidden lg:block">
-        <img
-          src="/img/pattern.png"
-          className="h-full w-full object-cover rounded-3xl"
-        />
+      <div className="w-2/4 h-[90vh] hidden lg:block ">
+        <div className="flex justify-center items-center h-full">
+          <img
+            src="/img/background/bg-spm.avif"
+            className="h-full w-full object-cover rounded-3xl "
+          />
+        </div>
       </div>
-      <div className="w-full lg:w-3/5 flex flex-col items-center justify-center">
+      <div className="w-full lg:w-3/5 sm:w-full flex flex-col items-center justify-center">
         <div className="text-center">
-          <Typography variant="h2" className="font-bold mb-4">
-            Join Us Today
-          </Typography>
-          <Typography
-            variant="paragraph"
-            color="blue-gray"
-            className="text-lg font-normal"
-          >
-            Enter your email and password to register.
+          <Typography variant="h2" className="font-bold ">
+            สมัครสมาชิก
           </Typography>
         </div>
-        <form className="mt-8 mb-2 mx-auto w-80 max-w-screen-lg lg:w-1/2">
-          <div className="mb-1 flex flex-col gap-6">
-            <Typography
-              variant="small"
-              color="blue-gray"
-              className="-mb-3 font-medium"
-            >
-              Your email
-            </Typography>
-            <Input
-              size="lg"
-              placeholder="name@mail.com"
-              className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-              labelProps={{
-                className: "before:content-none after:content-none",
-              }}
-            />
-          </div>
-          <Checkbox
-            label={
-              <Typography
-                variant="small"
-                color="gray"
-                className="flex items-center justify-start font-medium"
-              >
-                I agree the&nbsp;
-                <a
-                  href="#"
-                  className="font-normal text-black transition-colors hover:text-gray-900 underline"
-                >
-                  Terms and Conditions
-                </a>
-              </Typography>
-            }
-            containerProps={{ className: "-ml-2.5" }}
-          />
-          <Button className="mt-6" fullWidth>
-            Register Now
-          </Button>
-
-          <div className="space-y-4 mt-8">
-            <Button
-              size="lg"
-              color="white"
-              className="flex items-center gap-2 justify-center shadow-md"
-              fullWidth
-            >
-              <svg
-                width="17"
-                height="16"
-                viewBox="0 0 17 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_1156_824)">
-                  <path
-                    d="M16.3442 8.18429C16.3442 7.64047 16.3001 7.09371 16.206 6.55872H8.66016V9.63937H12.9813C12.802 10.6329 12.2258 11.5119 11.3822 12.0704V14.0693H13.9602C15.4741 12.6759 16.3442 10.6182 16.3442 8.18429Z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M8.65974 16.0006C10.8174 16.0006 12.637 15.2922 13.9627 14.0693L11.3847 12.0704C10.6675 12.5584 9.7415 12.8347 8.66268 12.8347C6.5756 12.8347 4.80598 11.4266 4.17104 9.53357H1.51074V11.5942C2.86882 14.2956 5.63494 16.0006 8.65974 16.0006Z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M4.16852 9.53356C3.83341 8.53999 3.83341 7.46411 4.16852 6.47054V4.40991H1.51116C0.376489 6.67043 0.376489 9.33367 1.51116 11.5942L4.16852 9.53356Z"
-                    fill="#FBBC04"
-                  />
-                  <path
-                    d="M8.65974 3.16644C9.80029 3.1488 10.9026 3.57798 11.7286 4.36578L14.0127 2.08174C12.5664 0.72367 10.6469 -0.0229773 8.65974 0.000539111C5.63494 0.000539111 2.86882 1.70548 1.51074 4.40987L4.1681 6.4705C4.8001 4.57449 6.57266 3.16644 8.65974 3.16644Z"
-                    fill="#EA4335"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_1156_824">
-                    <rect
-                      width="16"
-                      height="16"
-                      fill="white"
-                      transform="translate(0.5)"
-                    />
-                  </clipPath>
-                </defs>
-              </svg>
-              <span>Sign in With Google</span>
-            </Button>
-            <Button
-              size="lg"
-              color="white"
-              className="flex items-center gap-2 justify-center shadow-md"
-              fullWidth
-            >
-              <img src="/img/twitter-logo.svg" height={24} width={24} alt="" />
-              <span>Sign in With Twitter</span>
-            </Button>
-          </div>
-          <Typography
-            variant="paragraph"
-            className="text-center text-blue-gray-500 font-medium mt-4"
+        <Card color="transparent" shadow={false}>
+          <Formik
+            enableReinitialize
+            initialValues={{
+              username: "",
+              firstname: "",
+              lastname: "",
+              dpm_id: "",
+              password: "",
+              confirm: "",
+              phone:"",
+              email:"",
+              picture:"",
+              role_id:"",
+              dpm_id:"",
+              pst_id:""
+            }}
+            validationSchema={signUpSchema}
+            onSubmit={async (val,{resetForm }) => await onSubmitSignUp(val,resetForm)}
           >
-            Already have an account?
-            <Link to="/auth/sign-in" className="text-gray-900 ml-1">
-              Sign in
-            </Link>
-          </Typography>
-        </form>
+            {({
+              values,
+              touched,
+              errors,
+              setFieldValue,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+            }) => (
+              <Form onSubmit={handleSubmit} className="mt-8 mb-2 ">
+                <div className="mb-1 flex flex-col gap-2">
+                  <div className="w-full flex flex-col ">
+                    <Typography variant="h6" color="blue-gray">
+                      ชื่อผู้ใช้
+                    </Typography>
+                    <Input
+                      size="lg"
+                      placeholder="Supamitr09"
+                      name="username"
+                      value={values.username}
+                      onChange={(e)=> setFieldValue('username',inputLengthEnglish(e.target.value))}
+                      onBlur={handleBlur}
+                      error={Boolean(
+                        touched && touched.username && errors && errors.username
+                      )}
+                    />
+                    {touched && touched.username && errors && errors.username && (
+                      <p className="font-normal text-red-500 text-[12px]">
+                        {errors.username}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-4">
+                    <div className="w-full flex flex-col ">
+                      <Typography variant="h6" color="blue-gray">
+                        ชื่อจริง
+                      </Typography>
+                      <Input
+                        size="lg"
+                        placeholder="มะม่วง"
+                        name="firstname"
+                        value={values.firstname}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={Boolean(
+                          touched &&
+                            touched.firstname &&
+                            errors &&
+                            errors.firstname
+                        )}
+                      />
+                      {touched &&
+                        touched.firstname &&
+                        errors &&
+                        errors.firstname && (
+                          <p className="font-normal text-red-500 text-[12px]">
+                            {errors.firstname}
+                          </p>
+                        )}
+                    </div>
+                    <div className="w-full flex flex-col ">
+                      <Typography variant="h6" color="blue-gray">
+                        นามสกุล
+                      </Typography>
+                      <Input
+                        size="lg"
+                        placeholder="สุขดี"
+                        name="lastname"
+                        value={values.lastname}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={Boolean(
+                          touched &&
+                            touched.lastname &&
+                            errors &&
+                            errors.lastname
+                        )}
+                      />
+                      {touched &&
+                        touched.lastname &&
+                        errors &&
+                        errors.lastname && (
+                          <p className="font-normal text-red-500 text-[12px]">
+                            {errors.lastname}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+
+                  <div className="w-full flex flex-col ">
+                    <Typography variant="h6" color="blue-gray">
+                      แผนก
+                    </Typography>
+                    <select
+                      // size="lg"
+                     className={`
+                     w-full 
+                     bg-transparent 
+                   placeholder:text-blue-gray-400 
+                   text-blue-gray-700 text-sm 
+                     border-[0.5px] 
+                     border-blue-gray-200 
+                     rounded pl-3 pr-8 py-[11px] 
+                     transition duration-300 normal-case 
+                     focus:outline-none 
+                     ${touched && touched.dpm_id && errors && errors.dpm_id ? "border-red-500 " : "border-blue-gray-400"}   
+                     ${touched && touched.dpm_id && errors && errors.dpm_id ? "focus:border-red-500 " : "focus:border-blue-gray-400"}                                             
+                    hover:border-blue-gray-400  
+                      appearance-none cursor-pointer
+                      `}
+                      name="dpm_id"
+                      value={values.dpm_id || ""}
+                      onChange={(e) => {
+                        setFieldValue("dpm_id", e.target.value)
+                      }}
+                      onBlur={handleBlur}
+   
+                    >
+                      <option value="">None</option>
+                      {dpmData.map((dpm, index) => (
+                        <option value={dpm.id} key={index}>
+                          {dpm.name}
+                        </option>
+                      ))}
+                    </select>
+                    {touched && touched.dpm_id && errors && errors.dpm_id && (
+                      <p className="font-normal text-red-500 text-[12px]">
+                        {errors.dpm_id}
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-full flex flex-col ">
+                    <Typography variant="h6" color="blue-gray">
+                      รหัสผ่าน
+                    </Typography>
+                    <Input
+                      type="password"
+                      size="lg"
+                      placeholder="********"
+                      name="password"
+                      value={values.password}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      error={Boolean(
+                        touched && touched.password && errors && errors.password
+                      )}
+                    />
+                    {touched &&
+                      touched.password &&
+                      errors &&
+                      errors.password && (
+                        <p className="font-normal text-red-500 text-[12px]">
+                          {errors.password}
+                        </p>
+                      )}
+                  </div>
+                  <div className="w-full flex flex-col ">
+                    <Typography variant="h6" color="blue-gray">
+                      ยืนยันรหัสผ่าน
+                    </Typography>
+                    <Input
+                      type="password"
+                      size="lg"
+                      placeholder="********"
+                      name="confirm"
+                      value={values.confirm}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      error={Boolean(
+                        touched && touched.confirm && errors && errors.confirm
+                      )}
+                    />
+                    {touched && touched.confirm && errors && errors.confirm && (
+                      <p className="font-normal text-red-500 text-[12px]">
+                        {errors.confirm}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Button type="submit" className="mt-6 text-[16px]" fullWidth>
+                  สมัครสมาชิก
+                </Button>
+                <Typography
+                  color="gray"
+                  className="mt-4 text-center font-normal"
+                >
+                  มีบัญชีอยู่แล้ว?{" "}
+                  <Link
+                    to="/auth/sign-in"
+                    className="font-medium text-gray-900"
+                  >
+                    เข้าสู่ระบบ
+                  </Link>
+                </Typography>
+              </Form>
+            )}
+          </Formik>
+        </Card>
       </div>
     </section>
   );

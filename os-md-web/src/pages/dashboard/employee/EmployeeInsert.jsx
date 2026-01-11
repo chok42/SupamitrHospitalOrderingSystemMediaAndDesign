@@ -5,48 +5,22 @@ import * as Yup from "yup";
 //context
 import MyContext from "@/context/MyContext";
 //service
-//import { GetListDepartmentService } from "@/services/department.service";
-//import { GetListPositionService } from "@/services/position.service";
-//import { GetListRoleService } from "@/services/role.service";
 import { InsertEmployeeService } from "@/services/employee.service";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
-import {  dpmData, positionData, roleData } from "@/data";
+import {  dpmData, pstData, roleData } from "@/data";
 
 const employeeSchema = Yup.object().shape({
   code: Yup.string().required("กรุณาระบุข้อมูล"),
   username: Yup.string().required("กรุณาระบุข้อมูล"),
   password: Yup.string().required("กรุณาระบุข้อมูล"),
-  // pst_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // dpm_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // role_id: Yup.string().required("กรุณาระบุข้อมูล"),
 });
 
 export function EmployeeInsert() {
   const navigate = useNavigate();
   const { setLoader } = useContext(MyContext);
   const [showPassword, setShowPassword] = useState(false);
-  // const [departments, setDepartments] = useState([]);
-  // const [positions, setPositions] = useState([]);
-  // const [roles, setRoles] = useState([]);
 
-  // useMemo(async () => {
-  //   setLoader(true);
-  //   const res_dpm = await GetListDepartmentService();
-  //   const res_role = await GetListRoleService();
-  //   const res_pst = await GetListPositionService();
-  //   setLoader(false);
-
-  //   if (res_dpm) {
-  //     setDepartments(res_dpm);
-  //   }
-  //   if (res_role) {
-  //     setRoles(res_role);
-  //   }
-  //   if (res_pst) {
-  //     setPositions(res_pst);
-  //   }
-  // }, []);
 
   const onSubmitEmployee = async (value) => {
     setLoader(true);
@@ -287,7 +261,7 @@ export function EmployeeInsert() {
                       )}
                     >
                       <option value="">ตำแหน่ง</option>
-                      {positionData.map(({ id, name }) => (
+                      {pstData.map(({ id, name }) => (
                         <option value={id}>{name}</option>
                       ))}
                     </select>

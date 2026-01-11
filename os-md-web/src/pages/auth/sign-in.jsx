@@ -41,7 +41,7 @@ export function SignIn() {
             color="blue-gray"
             className=" font-normal text-[20px]"
           >
-            ระบบสั่งงาน สื่อและออกแบบ
+            ระบบนี้ใช้สำหรับ สั่งงาน แผนกสื่อและออกแบบ
           </Typography>
         </div>
         <Formik
@@ -142,7 +142,7 @@ export function SignIn() {
               <Button
                 disabled={loader}
                 type="submit"
-                className="mt-6"
+                className="mt-6 text-[16px]"
                 fullWidth
               >
                 เข้าสู่ระบบ
@@ -233,7 +233,7 @@ export function SignIn() {
               >
                 ไม่ได้ลงทะเบียน?
                 <Link to="/auth/sign-up" className="text-gray-900 ml-1">
-                  สมัครเข้าใช้งาน
+                  สมัครสมาชิก
                 </Link>
               </Typography>
             </Form>

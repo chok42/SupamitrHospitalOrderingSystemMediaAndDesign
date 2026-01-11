@@ -56,8 +56,13 @@ export function JobTable() {
 
   useEffect(() => {
     fetchData();
-  }, [page, pageSize,dataEmp]);
+  }, [page, pageSize, dataEmp]);
 
+  useEffect(() => {
+    const intervalId = setInterval(fetchRealTimeData, 10000); // Fetch every 5 seconds
+    return () => clearInterval(intervalId);
+  }, []);
+  
 
   const fetchData = async () => {
     setLoader(true);
@@ -71,6 +76,18 @@ export function JobTable() {
       setLoader(false);
     }
   };
+
+    const fetchRealTimeData = async () => {
+      if (dataEmp && dataEmp.dpm_id) {
+        const res = await GetListJobService(page, pageSize, dataEmp.dpm_id);
+        if (res) {
+          setJobs(res);
+        } else {
+          setJobs({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
+        }
+      }
+    };
+
 
 
 
@@ -620,7 +637,10 @@ export function JobTable() {
                     ))}
                 </PrivateRoute>
                 <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["2"]}>
-                  {values.status_id === "S01" && (
+                  <PrivateRoute
+                    role={values.status_id || ""}
+                    roles={["S01", "S02"]}
+                  >
                     <Button
                       type="button"
                       variant="gradient"
@@ -629,25 +649,28 @@ export function JobTable() {
                     >
                       <span>แก้ไขข้อมูล</span>
                     </Button>
-                  )}
-                  {jobStaEmp.filter((ft)=> ft.js_id !== "S05").map((item, index) => (
-                    <Button
-                      key={index}
-                      type="button"
-                      variant="gradient"
-                      color={item.color ? item.color : "gray"}
-                      onClick={async () => {
-                        await updateJobStatus(
-                          values.id,
-                          item.js_id,
-                          item.name,
-                          values.history
-                        );
-                      }}
-                    >
-                      <span>{item.name}</span>
-                    </Button>
-                  ))}
+                  </PrivateRoute>
+
+                  {jobStaEmp
+                    .filter((ft) => ft.status_id === values.status_id)
+                    .map((item, index) => (
+                      <Button
+                        key={index}
+                        type="button"
+                        variant="gradient"
+                        color={item.color ? item.color : "gray"}
+                        onClick={async () => {
+                          await updateJobStatus(
+                            values.id,
+                            item.js_id,
+                            item.name,
+                            values.history
+                          );
+                        }}
+                      >
+                        <span>{item.name}</span>
+                      </Button>
+                    ))}
                 </PrivateRoute>
               </DialogFooter>
             </Form>

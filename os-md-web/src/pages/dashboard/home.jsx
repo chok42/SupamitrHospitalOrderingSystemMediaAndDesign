@@ -1,48 +1,36 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Typography,
   Card,
   CardHeader,
   CardBody,
-  IconButton,
-  Menu,
-  MenuHandler,
-  MenuList,
-  MenuItem,
-  Avatar,
-  Tooltip,
   Progress,
 } from "@material-tailwind/react";
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-} from "@heroicons/react/24/outline";
-import { StatisticsCard } from "@/widgets/cards";
-import { StatisticsChart } from "@/widgets/charts";
-import {
-  statisticsCardsData,
-  statisticsChartsData,
-  projectsTableData,
-  ordersOverviewData,
-} from "@/data";
-import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { ReportDepatrmentListService } from "@/services/job.service";
 import MyContext from "@/context/MyContext";
 
 export function Home() {
   const { setLoader } = useContext(MyContext);
   const [dpms, setDpms] = useState([]);
-  useMemo(async () => {
-    setLoader(true)
+
+  useEffect( () => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoader(true);
     const resp = await ReportDepatrmentListService();
-    setLoader(false)
     if (resp) {
       setDpms(resp);
+    } else {
+      setDpms([]);
     }
-  }, []);
+    setLoader(false);
+  };
+
   return (
     <div className="mt-12 min-h-[75vh]">
-            <div className="mb-4 grid grid-cols-1 gap-6 ">
+      <div className="mb-4 grid grid-cols-1 gap-6 ">
         <Card className="overflow-hidden xl:col-span-2 border border-blue-gray-100 shadow-sm">
           <CardHeader
             floated={false}
@@ -51,7 +39,11 @@ export function Home() {
             className="m-0 flex items-center justify-between p-6"
           >
             <div>
-              <Typography variant="h6" color="blue-gray" className="mb-1 text-[18px]">
+              <Typography
+                variant="h6"
+                color="blue-gray"
+                className="mb-1 text-[18px]"
+              >
                 สถิติการสั่งงานแยกตามแผนก
               </Typography>
               {/* <Typography
@@ -83,28 +75,26 @@ export function Home() {
             <table className="w-full min-w-[640px] table-auto">
               <thead>
                 <tr>
-                  {["แผนก", "จำนวน"].map(
-                    (el) => (
-                      <th
-                        key={el}
-                        className="border-b border-blue-gray-50 py-3 px-6 text-left "
+                  {["แผนก", "จำนวน"].map((el) => (
+                    <th
+                      key={el}
+                      className="border-b border-blue-gray-50 py-3 px-6 text-left "
+                    >
+                      <Typography
+                        variant="small"
+                        className="text-[16px] font-bold uppercase text-blue-gray-400"
                       >
-                        <Typography
-                          variant="small"
-                          className="text-[16px] font-bold uppercase text-blue-gray-400"
-                        >
-                          {el}
-                        </Typography>
-                      </th>
-                    )
-                  )}
+                        {el}
+                      </Typography>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {dpms.map(
-                  ({ department_Id, department_Name,total }, index) => {
+                  ({ department_Id, department_Name, total }, index) => {
                     const className = `py-3 px-5 ${
-                      index === projectsTableData.length - 1
+                      index === dpms.length - 1
                         ? ""
                         : "border-b border-blue-gray-50"
                     }`;
@@ -135,7 +125,6 @@ export function Home() {
                               value={total}
                               variant="gradient"
                               color={total === 100 ? "green" : "blue"}
-                              
                               className="h-1"
                             />
                           </div>
@@ -241,7 +230,6 @@ export function Home() {
           />
         ))}
       </div> */}
-
     </div>
   );
 }

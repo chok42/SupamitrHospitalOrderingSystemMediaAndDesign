@@ -3,8 +3,6 @@ import routes from "@/routes";
 import { getStorage } from "@/helpers/contents";
 
 export function Auth() {
-
- const empRole = getStorage("empRole");
   return (
     <div className="relative  w-full">
       <Routes>
