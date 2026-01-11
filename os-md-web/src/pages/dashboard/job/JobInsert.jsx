@@ -41,7 +41,6 @@ const jobSchema = Yup.object().shape({
   employee_Id: Yup.string().required("กรุณาระบุข้อมูล"),
   employee_FirstName: Yup.string().required("กรุณาระบุข้อมูล"),
   department_Id: Yup.string().required("กรุณาระบุข้อมูล"),
-  position_Id: Yup.string().required("กรุณาระบุข้อมูล"),
 });
 
 export const JobInsert = () => {
@@ -95,7 +94,7 @@ export const JobInsert = () => {
           employee_Id: dataEmp ? dataEmp.id : "",
           employee_FirstName: dataEmp ? dataEmp.firstname : "",
           department_Id: dataEmp ? dataEmp.dpm_id ?? "" : "",
-          position_Id: dataEmp ? dataEmp.pst_id ?? "" : "",
+          position_Id: dataEmp ? dataEmp.position_Id ?? "" : "",
           fileShow: "",
           fileBase64: "",
           open: false,
@@ -143,7 +142,7 @@ export const JobInsert = () => {
                       color="blue-gray"
                       className="w-full bg-[#FFFFFF]rounded-md p-2 placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-300"
                     >
-                      {`รหัส: ${dataEmp.code || ""} ชื่อ: คุณ ${
+                      {`ชื่อผู้แจ้ง: ${
                         dataEmp.firstname || ""
                       }`}
                     </Typography>

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { jobService } from "../helpers/contents";
 
-export const GetListJobService = async (page,pageSize,department_Id) => {
+export const GetListJobService = async (page,pageSize,department_Id,role_id) => {
   try {
-    const body = JSON.stringify({ action: "getlist" ,page,pageSize,department_Id});
+    const body = JSON.stringify({ action: "getlist" ,page,pageSize,department_Id,role_id});
     const resp = await axios.post(jobService.JOB_URL, body);
     let json = await resp.data;
     if (json && json.success) {

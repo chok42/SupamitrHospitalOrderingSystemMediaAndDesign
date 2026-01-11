@@ -30,7 +30,6 @@ const jobSchema = Yup.object().shape({
   employee_Id: Yup.string().required("กรุณาระบุข้อมูล"),
   employee_FirstName: Yup.string().required("กรุณาระบุข้อมูล"),
   department_Id: Yup.string().required("กรุณาระบุข้อมูล"),
-  position_Id: Yup.string().required("กรุณาระบุข้อมูล"),
 });
 
 export function JobUpdate() {
@@ -100,7 +99,7 @@ export function JobUpdate() {
           job_Objective: job ? job.job_Objective ?? "" : "",
           job_mt: job ? job.job_mt ?? "" : "",
           job_mf: job ? job.job_mf ?? "" : "",
-          job_file: job ? job.job_file ?? "" : "",
+          job_fileUrl: job ? job.job_file ?? "" : "",
           jobType_Id: job ? job.jobType_Id ?? "" : "",
           jobStatus_Id: job ? job.jobStatus_Id ?? "" : "",
           recipient_Id: job ? job.recipient_Id ?? "" : "",
@@ -111,7 +110,7 @@ export function JobUpdate() {
           position_Id: job ? job.position_Id ?? "" : "",
           fileShow: "",
           fileBase64: "",
-          new_file: "",
+          job_file: "",
           open: false,
         }}
         onSubmit={(value) => onSubmitJob(value)}
@@ -128,7 +127,7 @@ export function JobUpdate() {
         { 
               const handleUpload = async (file) => {
                 const reader = new FileReader();
-                setFieldValue("new_file", file);
+                setFieldValue("job_file", file);
                 setFieldValue("fileBase64", "");
                 setFieldValue("fileShow", "");
                 reader.onloadend = async () => {
@@ -157,9 +156,9 @@ export function JobUpdate() {
                     color="blue-gray"
                     className="w-full bg-[#FFFFFF]rounded-md p-2 placeholder:opacity-100 border-[0.5px] focus:border-[0.5px] focus:border-t-gray-900 border-t-gray-300"
                   >
-                    {`รหัส: ${dataEmp.code || ""} ชื่อ: คุณ ${
-                      dataEmp.firstname || ""
-                    }`}
+                           {`ชื่อผู้แจ้ง: ${
+                        dataEmp.firstname || ""
+                      }`}
                   </Typography>
                 )}
               </div>
@@ -747,10 +746,10 @@ export function JobUpdate() {
                     />
                   }
                 />
-                {values.job_file && (
+                {values.job_fileUrl && (
                   <a
                     className="w-fit text-green-500"
-                    href={values.job_file}
+                    href={values.job_fileUrl}
                     download="proposed_file_name"
                     target="_blank"
                   >
@@ -781,11 +780,11 @@ export function JobUpdate() {
             <DialogUploadFile
               open={values.open}
               iframeFile={values.fileShow}
-              name={(values.new_file && values.new_file.name) || ""}
+              name={(values.job_file && values.job_file.name) || ""}
               handleDelete={() => {
                 setFieldValue("fileBase64", "");
                 setFieldValue("fileShow", "");
-                setFieldValue("new_file", "");
+                setFieldValue("job_file", "");
                 setFieldValue("open", false);
               }}
               handleClose={() => {

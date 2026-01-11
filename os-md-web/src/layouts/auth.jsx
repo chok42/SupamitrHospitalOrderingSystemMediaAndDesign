@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom";
 import routes from "@/routes";
-import { getStorage } from "@/helpers/contents";
 
 export function Auth() {
   return (

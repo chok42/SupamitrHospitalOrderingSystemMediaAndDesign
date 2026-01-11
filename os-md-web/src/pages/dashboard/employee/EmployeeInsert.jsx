@@ -8,19 +8,21 @@ import MyContext from "@/context/MyContext";
 import { InsertEmployeeService } from "@/services/employee.service";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { Card, Input, Button, Typography } from "@material-tailwind/react";
-import {  dpmData, pstData, roleData } from "@/data";
+import { dpmData, pstData, roleData, staEmpData } from "@/data";
 
 const employeeSchema = Yup.object().shape({
-  code: Yup.string().required("กรุณาระบุข้อมูล"),
-  username: Yup.string().required("กรุณาระบุข้อมูล"),
-  password: Yup.string().required("กรุณาระบุข้อมูล"),
+  username: Yup.string().required("กรุณาระบุชื่อผู้ใช้งาน"),
+  lastname: Yup.string().required("กรุณาระบุชื่อจริง"),
+  firstname: Yup.string().required("กรุณาระบุนามสกุล"),
+  dpm_id: Yup.string().required("กรุณาเลือกข้อมูล"),
+  role_id: Yup.string().required("กรุณาเลือกข้อมูล"),
+  status_id: Yup.string().required("กรุณาเลือกข้อมูล"),
 });
 
 export function EmployeeInsert() {
   const navigate = useNavigate();
   const { setLoader } = useContext(MyContext);
   const [showPassword, setShowPassword] = useState(false);
-
 
   const onSubmitEmployee = async (value) => {
     setLoader(true);
@@ -57,6 +59,7 @@ export function EmployeeInsert() {
             role_id: "",
             dpm_id: "",
             pst_id: "",
+            status_id: "",
           }}
           validationSchema={employeeSchema}
           onSubmit={(value) => onSubmitEmployee(value)}
@@ -72,8 +75,8 @@ export function EmployeeInsert() {
           }) => (
             <Form onSubmit={handleSubmit} className="h-full mt-8">
               <div className=" w-full h-full flex flex-col justify-between ">
-                <div className="flex w-full flex-wrap max-w-3xl  ">
-                  <div className="flex flex-col  xl:w-1/2 p-1">
+                <div className="w-full grid sm:grid-cols-2 grid-cols-1  ">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="รหัสพนักงาน"
@@ -93,7 +96,7 @@ export function EmployeeInsert() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="ชื่อผู้ใช้งาน"
@@ -116,7 +119,7 @@ export function EmployeeInsert() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       label="รหัสผ่าน"
                       type={showPassword ? "text" : "password"}
@@ -145,18 +148,17 @@ export function EmployeeInsert() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="ชื่อจริง"
                       variant="outlined"
                       size="lg"
-                 
                       name="firstname"
                       value={values.firstname}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                           error={Boolean(
+                      error={Boolean(
                         touched &&
                           touched.firstname &&
                           errors &&
@@ -172,7 +174,7 @@ export function EmployeeInsert() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="นามสกุล"
@@ -195,7 +197,7 @@ export function EmployeeInsert() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="เบอร์โทรศัพท์"
@@ -215,7 +217,7 @@ export function EmployeeInsert() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <Input
                       type="text"
                       label="อีเมล"
@@ -235,7 +237,7 @@ export function EmployeeInsert() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.dpm_id}
@@ -251,7 +253,7 @@ export function EmployeeInsert() {
                     </select>
                   </div>
 
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col  xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.pst_id}
@@ -266,7 +268,54 @@ export function EmployeeInsert() {
                       ))}
                     </select>
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
+                    <select
+                      // size="lg"
+                      className={`
+                                                           w-full 
+                                                           bg-transparent 
+                                                         placeholder:text-blue-gray-400 
+                                                         text-blue-gray-700 text-sm 
+                                                           border-[0.5px] 
+                                                           border-blue-gray-200 
+                                                           rounded pl-3 pr-8 py-[11px] 
+                                                           transition duration-300 normal-case 
+                                                           focus:outline-none 
+                                                           ${
+                                                             touched &&
+                                                             touched.status_id &&
+                                                             errors &&
+                                                             errors.status_id
+                                                               ? "border-red-500 "
+                                                               : "border-blue-gray-400"
+                                                           }   
+                                                           ${
+                                                             touched &&
+                                                             touched.status_id &&
+                                                             errors &&
+                                                             errors.status_id
+                                                               ? "focus:border-red-500 "
+                                                               : "focus:border-blue-gray-400"
+                                                           }                                             
+                                                          hover:border-blue-gray-400  
+                                                            appearance-none cursor-pointer
+                                                            `}
+                      name="status_id"
+                      value={values.status_id || ""}
+                      onChange={(e) => {
+                        setFieldValue("status_id", e.target.value);
+                      }}
+                      onBlur={handleBlur}
+                    >
+                      <option value="">สถานะการใช้งาน</option>
+                      {staEmpData.map((sta, index) => (
+                        <option value={sta.id} key={index}>
+                          {sta.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col  xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.role_id}

@@ -3,7 +3,6 @@ import { Dashboard, Auth } from "@/layouts";
 import ContextState from "./context/ContextState";
 import MyContext from "./context/MyContext";
 import { getStorage } from "./helpers/contents";
-import NotFound from "./pages/NotFound";
 import SpinnerLoader from "./components/SpinerLoader";
 import { useMemo } from "react";
 import { GetByIdEmployeeService } from "./services/employee.service";

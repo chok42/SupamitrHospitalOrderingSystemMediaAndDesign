@@ -62,12 +62,16 @@ export function JobTable() {
     const intervalId = setInterval(fetchRealTimeData, 10000); // Fetch every 5 seconds
     return () => clearInterval(intervalId);
   }, []);
-  
 
   const fetchData = async () => {
     setLoader(true);
     if (dataEmp && dataEmp.dpm_id) {
-      const res = await GetListJobService(page, pageSize, dataEmp.dpm_id);
+      const res = await GetListJobService(
+        page,
+        pageSize,
+        dataEmp.dpm_id,
+        dataEmp.role_id
+      );
       if (res) {
         setJobs(res);
       } else {
@@ -77,19 +81,21 @@ export function JobTable() {
     }
   };
 
-    const fetchRealTimeData = async () => {
-      if (dataEmp && dataEmp.dpm_id) {
-        const res = await GetListJobService(page, pageSize, dataEmp.dpm_id);
-        if (res) {
-          setJobs(res);
-        } else {
-          setJobs({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
-        }
+  const fetchRealTimeData = async () => {
+    if (dataEmp && dataEmp.dpm_id) {
+      const res = await GetListJobService(
+        page,
+        pageSize,
+        dataEmp.dpm_id,
+        dataEmp.role_id
+      );
+      if (res) {
+        setJobs(res);
+      } else {
+        setJobs({ page: 1, pageSize: 10, total: 0, totalPages: 1 });
       }
-    };
-
-
-
+    }
+  };
 
   const fetchDataHistory = async (id) => {
     setLoader(true);
@@ -121,9 +127,19 @@ export function JobTable() {
     setPageSize(number);
   };
 
-  
-  const convertDriveIFrame = (url) => {
+  const jobStatusData = (id) => {
+    if (id) {
+      const item = jsData.find((fd) => fd?.id === id);
+      if (item) {
+        return (
+          <Chip value={item.name} color={item.color} className="w-fit h-fit" />
+        );
+      }
+    }
+    return "";
+  };
 
+  const convertDriveIFrame = (url) => {
     if (url) {
       const fileId = url.match(/[-\w]{25,}/)[0];
       return `https://lh3.googleusercontent.com/d/${fileId}`;
@@ -194,7 +210,7 @@ export function JobTable() {
             <div className="flex justify-center items-center gap-4">
               <PrivateRoute
                 role={(dataEmp && dataEmp.role_id) || ""}
-                roles={["99", "2"]}
+                roles={["R02"]}
               >
                 <Button
                   onClick={() => navigate("insert")}
@@ -216,7 +232,7 @@ export function JobTable() {
           <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
             <PrivateRoute
               role={(dataEmp && dataEmp.role_id) || ""}
-              roles={["1", "2"]}
+              roles={["R01", "R02"]}
             >
               <div className="flex flex-col gap-4 p-2">
                 {jobs.data && jobs.data.length > 0 ? (
@@ -287,7 +303,7 @@ export function JobTable() {
             </PrivateRoute>
             <PrivateRoute
               role={(dataEmp && dataEmp.role_id) || ""}
-              roles={["99"]}
+              roles={["R99"]}
             >
               <table className="w-full min-w-[640px] table-auto">
                 <thead>
@@ -316,9 +332,9 @@ export function JobTable() {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobs &&
-                    jobs.length > 0 &&
-                    jobs.map(
+                  {jobs.data &&
+                    jobs.data.length > 0 &&
+                    jobs.data.map(
                       (
                         {
                           job_Id,
@@ -327,11 +343,12 @@ export function JobTable() {
                           employee_FirstName,
                           reviewer_FirstName,
                           job_CreationDate,
+                          jobStatus_Id,
                         },
                         index
                       ) => {
                         const className = `py-3 px-5 ${
-                          index === jobs.length - 1
+                          index === jobs.data.length - 1
                             ? ""
                             : "border-b border-blue-gray-50"
                         }`;
@@ -374,23 +391,20 @@ export function JobTable() {
                                 {reviewer_FirstName}
                               </Typography>
                             </td>
-                            <td className={className}>
-                              <Typography
-                                variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
-                              >
-                                {reviewer_FirstName}
-                              </Typography>
-                            </td>
-                            <td className={className}>
-                              <Typography
-                                variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
-                              >
-                                {job_CreationDate}
-                              </Typography>
-                            </td>
 
+                            <td className={className}>
+                              <Typography
+                                variant="small"
+                                className="text-xs font-medium text-blue-gray-600"
+                              >
+                                {toThaiDateTimeString(job_CreationDate)}
+                              </Typography>
+                            </td>
+                            <td className={className}>
+                              <div className="flex justify-start items-center">
+                                {jobStatus_Id && jobStatusData(jobStatus_Id)}
+                              </div>
+                            </td>
                             <td className={className}>
                               <div className="flex gap-2">
                                 <IconButton
@@ -589,7 +603,7 @@ export function JobTable() {
                       <JobHsitoryTimeline itemHistory={jobHistory} />
                       <PrivateRoute
                         role={values.status_id}
-                        roles={["S01", "S02", "S03"]}
+                        roles={["S01", "S02"]}
                       >
                         <div className="w-full max-h-[20vh] pt-4">
                           <Typography className="text-[16px] font-normal text-blue-gray-700">
@@ -614,7 +628,7 @@ export function JobTable() {
               </DialogBody>
 
               <DialogFooter className="flex flex-row gap-2">
-                <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["1"]}>
+                <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["R01"]}>
                   {jobStaManager
                     .filter((ft) => ft.status_id === values.status_id)
                     .map((item, index) => (
@@ -636,7 +650,7 @@ export function JobTable() {
                       </Button>
                     ))}
                 </PrivateRoute>
-                <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["2"]}>
+                <PrivateRoute role={dataEmp && dataEmp.role_id} roles={["R02"]}>
                   <PrivateRoute
                     role={values.status_id || ""}
                     roles={["S01", "S02"]}

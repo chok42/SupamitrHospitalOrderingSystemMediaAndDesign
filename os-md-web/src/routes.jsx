@@ -1,13 +1,11 @@
 import {
   HomeIcon,
-  UserCircleIcon,
   TableCellsIcon,
-  InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, EmployeeTable, EmployeeInsert, EmployeeUpdate, JobTable, JobInsert, JobUpdate } from "@/pages/dashboard";
+import { Home, EmployeeTable, EmployeeInsert, EmployeeUpdate, JobTable, JobInsert, JobUpdate } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 const icon = {
@@ -17,7 +15,7 @@ const icon = {
 export const routes = [
   {
     layout: "dashboard",
-    role: "99",
+    role: "R99",
     token:true,
     pages: [
       {
@@ -26,12 +24,6 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },
-      // {
-      //   icon: <UserCircleIcon {...icon} />,
-      //   name: "profile",
-      //   path: "/profile",
-      //   element: <Profile />,
-      // },
       {
         icon: <UserIcon {...icon} />,
         name: "ตารางพนักงาน",
@@ -76,17 +68,11 @@ export const routes = [
           },
         ],
       },
-      // {
-      //   icon: <InformationCircleIcon {...icon} />,
-      //   name: "แจ้งงานใหม่",
-      //   path: "/notifications",
-      //   element: <Notifications />,
-      // },
     ],
   },
     {
     layout: "dashboard",
-    role: "1",
+    role: "R01",
     token:true,
     pages: [
       {
@@ -95,12 +81,6 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },
-      // {
-      //   icon: <UserCircleIcon {...icon} />,
-      //   name: "profile",
-      //   path: "/profile",
-      //   element: <Profile />,
-      // },
       {
         icon: <TableCellsIcon {...icon} />,
         name: "แจ้งงานสื่อ",
@@ -123,17 +103,11 @@ export const routes = [
           },
         ],
       },
-      // {
-      //   icon: <InformationCircleIcon {...icon} />,
-      //   name: "แจ้งงานใหม่",
-      //   path: "/notifications",
-      //   element: <Notifications />,
-      // },
     ],
   },
    {
     layout: "dashboard",
-    role: "2",
+    role: "R02",
     token:true,
     pages: [
       {
@@ -142,12 +116,6 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },
-      // {
-      //   icon: <UserCircleIcon {...icon} />,
-      //   name: "profile",
-      //   path: "/profile",
-      //   element: <Profile />,
-      // },
       {
         icon: <TableCellsIcon {...icon} />,
         name: "แจ้งงานสื่อ",
@@ -170,12 +138,6 @@ export const routes = [
           },
         ],
       },
-      // {
-      //   icon: <InformationCircleIcon {...icon} />,
-      //   name: "แจ้งงานใหม่",
-      //   path: "/notifications",
-      //   element: <Notifications />,
-      // },
     ],
   },
   {

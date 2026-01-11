@@ -40,14 +40,6 @@ export function Dashboard() {
             ({ layout, pages }) =>
               layout === "dashboard" &&
               pages.map(({ path, element, elements }) => {
-                // <Route exact path={path} element={element} />;
-                // if (elements && elements.length > 0) {
-                //   return (elements.map((path2, element2) => (
-                //         <Route exact path={path2} element={element2} />
-                //       ))
-
-                //   );
-                // }
                 if (elements && elements.length > 0) {
                   const elementRoute = elements.map(
                     ({ path2, element2 }, key2) => (

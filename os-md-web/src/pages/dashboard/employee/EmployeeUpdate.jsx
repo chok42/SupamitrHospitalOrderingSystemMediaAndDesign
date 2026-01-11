@@ -1,5 +1,5 @@
 import MyContext from "@/context/MyContext";
-import { dpmData, pstData, roleData } from "@/data";
+import { dpmData, pstData, roleData, staEmpData } from "@/data";
 // import { GetListDepartmentService } from "@/services/department.service";
 import {
   GetByIdEmployeeService,
@@ -12,12 +12,8 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   Input,
-  Checkbox,
   Button,
   Typography,
-  CardHeader,
-  Select,
-  Option,
 } from "@material-tailwind/react";
 import { Form, Formik } from "formik";
 import { useContext, useMemo, useState } from "react";
@@ -25,12 +21,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
 const employeeSchema = Yup.object().shape({
-  code: Yup.string().required("กรุณาระบุข้อมูล"),
-  username: Yup.string().required("กรุณาระบุข้อมูล"),
-  // password: Yup.string().required("กรุณาระบุข้อมูล"),
-  // pst_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // dpm_id: Yup.string().required("กรุณาระบุข้อมูล"),
-  // role_id: Yup.string().required("กรุณาระบุข้อมูล"),
+  username: Yup.string().required("กรุณาระบุชื่อผู้ใช้งาน"),
+  lastname: Yup.string().required("กรุณาระบุชื่อจริง"),
+  firstname: Yup.string().required("กรุณาระบุนามสกุล"),
+  dpm_id: Yup.string().required("กรุณาเลือกข้อมูล"),
+  role_id: Yup.string().required("กรุณาเลือกข้อมูล"),
+  status_id: Yup.string().required("กรุณาเลือกข้อมูล"),
 });
 
 export function EmployeeUpdate() {
@@ -85,8 +81,8 @@ export function EmployeeUpdate() {
     }
   };
   return (
-    <div className="flex justify-center min-h-[75vh]">
-      <Card color="transparent" shadow={true} className="p-6">
+    <div className="flex justify-center min-h-[75vh] mt-4">
+      <Card color="transparent" shadow={true} className="p-6 xl:min-w-[960px]" >
         <Typography variant="h3" className="text-[#0057A1] text-center">
           อัปเดตข้อมูลพนักงาน
         </Typography>
@@ -97,7 +93,7 @@ export function EmployeeUpdate() {
             id: employee ? employee.id ?? "" : "",
             code: employee ? employee.code ?? "" : "",
             username: employee ? employee.username ?? "" : "",
-            password: employee ? employee.password ?? "" : "",
+            password: "",
             firstname: employee ? employee.firstname ?? "" : "",
             lastname: employee ? employee.lastname ?? "" : "",
             phone: employee ? employee.phone ?? "" : "",
@@ -106,6 +102,7 @@ export function EmployeeUpdate() {
             role_id: employee ? employee.role_id ?? "" : "",
             dpm_id: employee ? employee.dpm_id ?? "" : "",
             pst_id: employee ? employee.pst_id ?? "" : "",
+            status_id: employee ? employee.status_id ?? "" : "",
           }}
           validationSchema={employeeSchema}
           onSubmit={(value) => onSubmitEmployee(value)}
@@ -121,8 +118,8 @@ export function EmployeeUpdate() {
           }) => (
             <Form onSubmit={handleSubmit} className="h-full mt-8">
               <div className=" w-full h-full flex flex-col justify-between ">
-                <div className="flex w-full flex-wrap max-w-3xl  ">
-                  <div className="flex flex-col  xl:w-1/2 p-1">
+                <div className="grid sm:grid-cols-2 grid-cols-1 w-full">
+                  <div className="flex flex-col w-full p-1">
                     <Input
                       type="text"
                       label="รหัสพนักงาน"
@@ -142,7 +139,7 @@ export function EmployeeUpdate() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className=" flex flex-col gap-1 xl:w-full p-1">
                     <Input
                       type="text"
                       label="ชื่อผู้ใช้งาน"
@@ -165,7 +162,7 @@ export function EmployeeUpdate() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <Input
                       label="รหัสผ่านใหม่"
                       type={showPassword ? "text" : "password"}
@@ -194,7 +191,7 @@ export function EmployeeUpdate() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <Input
                       type="text"
                       label="ชื่อจริง"
@@ -220,7 +217,7 @@ export function EmployeeUpdate() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <Input
                       type="text"
                       label="นามสกุล"
@@ -243,7 +240,7 @@ export function EmployeeUpdate() {
                         </p>
                       )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <Input
                       type="text"
                       label="เบอร์โทรศัพท์"
@@ -263,7 +260,7 @@ export function EmployeeUpdate() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <Input
                       type="text"
                       label="อีเมล"
@@ -283,7 +280,7 @@ export function EmployeeUpdate() {
                       </p>
                     )}
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.dpm_id}
@@ -299,7 +296,7 @@ export function EmployeeUpdate() {
                     </select>
                   </div>
 
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.pst_id}
@@ -314,7 +311,7 @@ export function EmployeeUpdate() {
                       ))}
                     </select>
                   </div>
-                  <div className=" flex flex-col gap-1 xl:w-1/2 p-1">
+                  <div className="flex flex-col xl:w-full p-1">
                     <select
                       className="w-full bg-transparent placeholder:text-blue-gray-400 text-blue-gray-700 text-sm border border-blue-gray-200 rounded pl-3 pr-8 py-3 transition duration-300 normal-case focus:outline-none focus:border-blue-gray-400 hover:border-blue-gray-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
                       value={values.role_id}
@@ -328,7 +325,54 @@ export function EmployeeUpdate() {
                         <option value={id}>{name}</option>
                       ))}
                     </select>
-                  </div>
+                  </div>      
+                   <div className="flex flex-col xl:w-full p-1">
+                             <select
+                                      // size="lg"
+                                      className={`
+                                         w-full 
+                                         bg-transparent 
+                                       placeholder:text-blue-gray-400 
+                                       text-blue-gray-700 text-sm 
+                                         border-[0.5px] 
+                                         border-blue-gray-200 
+                                         rounded pl-3 pr-8 py-[11px] 
+                                         transition duration-300 normal-case 
+                                         focus:outline-none 
+                                         ${
+                                           touched &&
+                                           touched.status_id &&
+                                           errors &&
+                                           errors.status_id
+                                             ? "border-red-500 "
+                                             : "border-blue-gray-400"
+                                         }   
+                                         ${
+                                           touched &&
+                                           touched.status_id &&
+                                           errors &&
+                                           errors.status_id
+                                             ? "focus:border-red-500 "
+                                             : "focus:border-blue-gray-400"
+                                         }                                             
+                                        hover:border-blue-gray-400  
+                                          appearance-none cursor-pointer
+                                          `}
+                                      name="status_id"
+                                      value={values.status_id || ""}
+                                      onChange={(e) => {
+                                        setFieldValue("status_id", e.target.value);
+                                      }}
+                                      onBlur={handleBlur}
+                                    >
+                                      <option value="">None</option>
+                                      {staEmpData.map((sta, index) => (
+                                        <option value={sta.id} key={index}>
+                                          {sta.title}
+                                        </option>
+                                      ))}
+                                    </select>
+                   </div>
                 </div>
                 <div className="w-full flex justify-end gap-2">
                   <Button

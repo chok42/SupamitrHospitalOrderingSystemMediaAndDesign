@@ -86,7 +86,7 @@ export function EmployeeTable() {
 
   const departmentData = (id) => {
     if (id) {
-      const dpmName = dpmData.find((fd) => fd.id === id)?.name;
+      const dpmName = dpmData.find((fd) => fd?.id === id)?.name;
       if (dpmName) {
         return dpmName;
       }
@@ -96,7 +96,7 @@ export function EmployeeTable() {
 
   const positionData = (id) => {
     if (id) {
-      const pstName = pstData.find((fd) => fd.id === id)?.name;
+      const pstName = pstData.find((fd) => fd?.id === id)?.name;
       if (pstName) {
         return pstName;
       }
@@ -106,7 +106,7 @@ export function EmployeeTable() {
 
   const rolData = (id) => {
     if (id) {
-      const rolName = roleData.find((fd) => fd.id === id)?.name;
+      const rolName = roleData.find((fd) => fd?.id === id)?.name;
       if (rolName) {
         return rolName;
       }
@@ -116,7 +116,7 @@ export function EmployeeTable() {
 
   const statusData = (id) => {
     if (id) {
-      const sta = staEmpData.find((fd) => fd.id === id);
+      const sta = staEmpData.find((fd) => fd?.id === id);
       if (sta) {
         return <LightBulbIcon color={sta?.color} className={`w-5 h-5 `} />;
       }
@@ -202,7 +202,7 @@ export function EmployeeTable() {
                   "ชื่อจริง",
                   "แผนก",
                   "สิทธิ์การใช้งาน",
-                  "เบอร์โทรศัพท์",
+                  "สถานะ",
                   "",
                 ].map((el) => (
                   <th

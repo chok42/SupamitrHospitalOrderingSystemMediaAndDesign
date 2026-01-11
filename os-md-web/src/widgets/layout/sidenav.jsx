@@ -29,12 +29,6 @@ export function Sidenav({ brandImg, brandName, routes }) {
     >
       <div className={`relative`}>
         <Link to="/" className="py-6 px-8 flex item-center">
-          {/* <Typography
-            variant="h6"
-            color={sidenavType === "dark" ? "white" : "blue-gray"}
-          >
-          Supamitr Hospital
-          </Typography> */}
           <img src="/img/logo/spm-logo.avif" className="w-64" />
         </Link>
         <IconButton
@@ -45,7 +39,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
           className="absolute right-0 top-0 grid rounded-br-none rounded-tl-none xl:hidden"
           onClick={() => setOpenSidenav(dispatch, false)}
         >
-          <XMarkIcon strokeWidth={2.5} className="h-5 w-5 text-white" />
+          <XMarkIcon strokeWidth={2.5} className="h-6 w-6 text-gray-600" />
         </IconButton>
       </div>
       <div className="m-4">
