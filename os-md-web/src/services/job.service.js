@@ -128,6 +128,22 @@ export const DeleteJobService = async (id) => {
   }
 };
 
+export const RemoveIsShowService = async (id,isShow) => {
+  try {
+    const body = JSON.stringify({ action: "remove_isshow", id,isShow});
+    const resp = await axios.post(jobService.JOB_URL, body);
+    let json = await resp.data;
+    if (json) {
+      return json
+    }
+    return null;
+  } catch (error) {
+    console.log("Error fetching movie details:", error);
+    throw error;
+  }
+};
+
+
 export const ReportStatusListService = async () => {
   try {
     const body = JSON.stringify({ action: "reportStatusList" });

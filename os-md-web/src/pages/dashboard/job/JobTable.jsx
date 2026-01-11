@@ -16,12 +16,14 @@ import {
   GetListJobHistoryByIdService,
   GetListJobService,
   InsertJobHistoryService,
+  RemoveIsShowService,
   UpdateJobStatusService,
 } from "@/services/job.service";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowPathIcon,
+  LightBulbIcon,
   LinkIcon,
   PencilIcon,
   TrashIcon,
@@ -31,7 +33,7 @@ import MyContext from "@/context/MyContext";
 import Swal from "sweetalert2";
 import { PrivateRoute } from "@/guard/PrivateRoute";
 import { toThaiDateTimeString } from "@/helpers/format";
-import { dpmData, jobStaEmp, jobStaManager, jsData } from "@/data";
+import { dpmData, jobIsShowData, jobStaEmp, jobStaManager, jsData } from "@/data";
 import { JobHsitoryTimeline } from "./sections/JobHsitoryTimeline";
 import { Form, Formik } from "formik";
 import { format } from "date-fns";
@@ -139,6 +141,16 @@ export function JobTable() {
     return "";
   };
 
+    const handleJobIsShowData = (isShow) => {
+      if (isShow) {
+        const sta = jobIsShowData.find((fd) => fd?.status === isShow);
+        if (sta) {
+          return <LightBulbIcon color={sta?.color} className={`w-5 h-5 `} />;
+        }
+      }
+      return "";
+    };
+
   const convertDriveIFrame = (url) => {
     if (url) {
       const fileId = url.match(/[-\w]{25,}/)[0];
@@ -175,6 +187,13 @@ export function JobTable() {
         }
       }
     });
+  };
+
+  const removeIsShow = async (id, isShow) => {
+    const resp = await RemoveIsShowService(id, isShow);
+    if (resp && resp.success) {
+      await fetchData();
+    }
   };
 
   const updateJobStatus = async (id, status_id, status_name, detail) => {
@@ -256,8 +275,7 @@ export function JobTable() {
                                 <Typography variant="h6" color="gray">
                                   {`แผนก: ${iJob.code || ""} ${
                                     dpmData.find(
-                                      (fd) =>
-                                        fd.id === iJob.department_Id.toString()
+                                      (fd) => fd.id === iJob.department_Id
                                     )?.name || ""
                                   } `}
                                 </Typography>
@@ -319,7 +337,7 @@ export function JobTable() {
                     ].map((el) => (
                       <th
                         key={el}
-                        className="border-b border-blue-gray-50 py-3 px-5 text-left"
+                        className="border-b border-blue-gray-50 py-3 px-5 text-left text-[14px]"
                       >
                         <Typography
                           variant="small"
@@ -344,6 +362,7 @@ export function JobTable() {
                           reviewer_FirstName,
                           job_CreationDate,
                           jobStatus_Id,
+                          isShow
                         },
                         index
                       ) => {
@@ -359,9 +378,9 @@ export function JobTable() {
                               <div className="flex items-center gap-4">
                                 {/* <Avatar src={img} alt={name} size="sm" /> */}
                                 <Typography
-                                  variant="small"
+                     
                                   color="blue-gray"
-                                  className="font-bold"
+                                  className="font-bold text-[14px]"
                                 >
                                   {job_Code}
                                 </Typography>
@@ -370,7 +389,7 @@ export function JobTable() {
                             <td className={className}>
                               <Typography
                                 variant="small"
-                                className="text-xs font-medium text-blue-gray-400"
+                                  className="font-medium text-[14px] text-blue-gray-600"
                               >
                                 {job_Name}
                               </Typography>
@@ -378,7 +397,7 @@ export function JobTable() {
                             <td className={className}>
                               <Typography
                                 variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
+                                className="font-medium text-[14px] text-blue-gray-600"
                               >
                                 {employee_FirstName}
                               </Typography>
@@ -386,7 +405,7 @@ export function JobTable() {
                             <td className={className}>
                               <Typography
                                 variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
+                                className="font-medium text-[14px] text-blue-gray-600"
                               >
                                 {reviewer_FirstName}
                               </Typography>
@@ -395,7 +414,7 @@ export function JobTable() {
                             <td className={className}>
                               <Typography
                                 variant="small"
-                                className="text-xs font-medium text-blue-gray-600"
+                                className="font-medium text-[14px] text-blue-gray-600"
                               >
                                 {toThaiDateTimeString(job_CreationDate)}
                               </Typography>
@@ -408,12 +427,12 @@ export function JobTable() {
                             <td className={className}>
                               <div className="flex gap-2">
                                 <IconButton
-                                  className="bg-yellow-700"
-                                  onClick={() =>
-                                    navigate("update", { state: job_Id })
+                                  className="bg-white"
+                                  onClick={async () =>
+                                    await removeIsShow(job_Id, isShow)
                                   }
                                 >
-                                  <PencilIcon className="w-5 text-white" />
+                                 {handleJobIsShowData(isShow)}
                                 </IconButton>
                                 <IconButton
                                   onClick={async () => await deleteJob(job_Id)}

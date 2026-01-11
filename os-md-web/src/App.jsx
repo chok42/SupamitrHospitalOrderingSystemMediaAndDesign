@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Dashboard, Auth } from "@/layouts";
 import ContextState from "./context/ContextState";
 import MyContext from "./context/MyContext";
-import { getStorage } from "./helpers/contents";
+import { getStorage, removeAllStorage } from "./helpers/contents";
 import SpinnerLoader from "./components/SpinerLoader";
 import { useMemo } from "react";
 import { GetByIdEmployeeService } from "./services/employee.service";
@@ -20,11 +20,20 @@ function App() {
     if (checkToken) {
       state.setLoader(true);
       const resp = await GetByIdEmployeeService(token);
-      state.setDataEmp(resp);
+      if (resp) {
+        if (resp.status_id === "S01") {
+          removeAllStorage();
+          window.location.reload();
+        } else if (resp.role_id !== empRole) {
+          removeAllStorage();
+          window.location.reload();
+        }
+        state.setDataEmp(resp);
+      }
       state.setLoader(false);
-    } else {
     }
   }, []);
+
 
   const handleChangeRoutes = (check) => {
     if (checkToken) {

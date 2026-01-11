@@ -207,11 +207,11 @@ export function EmployeeTable() {
                 ].map((el) => (
                   <th
                     key={el}
-                    className="border-b border-blue-gray-50 py-3 px-5 text-left"
+                    className="border-b border-blue-gray-50 py-3 px-5 text-left "
                   >
                     <Typography
                       variant="small"
-                      className="text-[11px] font-bold uppercase text-blue-gray-400"
+                      className="text-[14px] font-bold uppercase text-blue-gray-400"
                     >
                       {el}
                     </Typography>
@@ -269,31 +269,30 @@ export function EmployeeTable() {
                             variant="rounded"
                           />
                           <div>
-                            <Typography
-                              variant="small"
+                            <Typography                   
                               color="blue-gray"
-                              className="font-semibold"
+                              className="font-semibold text-[14px]"
                             >
                               {username}
                             </Typography>
-                            <Typography className="text-xs font-normal text-blue-gray-500">
+                            <Typography className="text-[14px] font-normal text-blue-gray-500">
                               {email}
                             </Typography>
                           </div>
                         </div>
                       </td>
                       <td className={className}>
-                        <Typography className="text-xs font-semibold text-blue-gray-600">
+                        <Typography className="text-[14px] font-normal text-blue-gray-600">
                           {`${firstname} ${lastname}`}
                         </Typography>
                       </td>
                       <td className={className}>
-                        <Typography className="text-xs font-semibold text-blue-gray-600">
+                        <Typography className="text-[14px] font-normal text-blue-gray-600">
                           {departmentData(dpm_id)}
                         </Typography>
                       </td>
                       <td className={className}>
-                        <Typography className="text-xs font-semibold text-blue-gray-600">
+                        <Typography className="text-[14px] font-normal text-blue-gray-600">
                           {rolData(role_id)}
                         </Typography>
                       </td>
