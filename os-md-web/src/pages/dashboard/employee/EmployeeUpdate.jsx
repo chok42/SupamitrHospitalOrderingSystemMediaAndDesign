@@ -68,9 +68,9 @@ export function EmployeeUpdate() {
     setLoader(true);
     const newValue = {
       ...value,
-      role_id: value.role_id.toString(),
-      dpm_id: value.dpm_id.toString(),
-      pst_id: value.pst_id.toString(),
+      role_id: value.role_id,
+      dpm_id: value.dpm_id,
+      pst_id: value.pst_id,
     };
     const resp = await UpdateEmployeeService(newValue);
     console.log("resp", resp);

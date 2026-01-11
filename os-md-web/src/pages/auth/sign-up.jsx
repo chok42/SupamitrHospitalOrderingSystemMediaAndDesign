@@ -98,7 +98,6 @@ export function SignUp() {
               email:"",
               picture:"",
               role_id:"",
-              dpm_id:"",
               pst_id:""
             }}
             validationSchema={signUpSchema}
